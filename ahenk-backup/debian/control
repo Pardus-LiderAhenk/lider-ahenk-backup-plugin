@@ -9,6 +9,6 @@ Homepage: http://www.liderahenk.org.tr
 Package: backup
 Version: 1.0.0
 Architecture: any
-Depends: python3 (>= 3)
+Depends: python3 (>= 3), rsync
 Description: LiderAhenk ahenk-backup application
  Long Desc
