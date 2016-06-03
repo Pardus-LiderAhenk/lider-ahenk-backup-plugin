@@ -11,14 +11,6 @@
 		update-strategy="reload">
 	</cm:property-placeholder>
 
-	<!-- ICommand implementation is used to process a task execution -->
-	<service ref="BackupCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
-	<bean id="BackupCommand" class="tr.org.liderahenk.backup.commands.BackupCommand">
-		<property name="pluginDbService" ref="pluginDbService" />
-		<property name="logService" ref="logService" />
-		<property name="resultFactory" ref="resultFactory" />
-	</bean>
-
 	<!-- IPluginInfo implementation is used to register plugin -->
 	<service ref="pluginInfoImpl"
 		interface="tr.org.liderahenk.lider.core.api.plugin.IPluginInfo" />
@@ -37,10 +29,4 @@
 		<property name="distroPath" value="${plugin.distro.path}" />
 	</bean>
 
-	<reference id="pluginDbService"
-		interface="tr.org.liderahenk.lider.core.api.persistence.IPluginDbService" />
-	<reference id="logService"
-		interface="tr.org.liderahenk.lider.core.api.log.IOperationLogService" />
-	<reference id="resultFactory"
-		interface="tr.org.liderahenk.lider.core.api.service.ICommandResultFactory" />
 </blueprint>
