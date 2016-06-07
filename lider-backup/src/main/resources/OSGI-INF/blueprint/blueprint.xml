@@ -28,5 +28,15 @@
 		<property name="distroPassword" value="${plugin.distro.password}" />
 		<property name="distroPath" value="${plugin.distro.path}" />
 	</bean>
+	
+	<!-- ICommand implementation is used to process a task execution -->
+	<service ref="backupCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
+	<bean id="backupCommand"
+		class="tr.org.liderahenk.backup.commands.BackupCommand">
+		<property name="pluginInfo" ref="pluginInfoImpl" />
+		<property name="resultFactory" ref="resultFactory" />
+	</bean>
 
+	<reference id="resultFactory"
+		interface="tr.org.liderahenk.lider.core.api.service.ICommandResultFactory" />
 </blueprint>
