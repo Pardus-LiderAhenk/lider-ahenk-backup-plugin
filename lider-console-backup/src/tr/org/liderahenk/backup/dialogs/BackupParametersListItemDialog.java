@@ -73,8 +73,8 @@ public class BackupParametersListItemDialog extends TrayDialog {
 		lblDir.setText(Messages.getString("BACKUP_DIR"));
 		txtDirectory = new Text(composite, SWT.BORDER);
 		txtDirectory.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
-		if (item != null && item.getDirectory() != null) {
-			txtDirectory.setText(item.getDirectory());
+		if (item != null && item.getSourcePath() != null) {
+			txtDirectory.setText(item.getSourcePath());
 		}
 		new Label(composite, SWT.NONE);
 
@@ -82,8 +82,8 @@ public class BackupParametersListItemDialog extends TrayDialog {
 		lblExcFileType.setText(Messages.getString("EXCLUDE_FILE_TYPE"));
 		txtExcludeFileTypes = new Text(composite, SWT.BORDER);
 		txtExcludeFileTypes.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
-		if (item != null && item.getExcludeFileTypes() != null) {
-			txtExcludeFileTypes.setText(item.getExcludeFileTypes());
+		if (item != null && item.getExcludePattern() != null) {
+			txtExcludeFileTypes.setText(item.getExcludePattern());
 		}
 		new Label(composite, SWT.NONE);
 		
@@ -96,20 +96,20 @@ public class BackupParametersListItemDialog extends TrayDialog {
 		btnCheckProtectGroup = new Button(composite, SWT.CHECK);
 		btnCheckProtectGroup.setText(Messages.getString("PROTECT_GROUP"));
 		if (item != null) {
-			btnCheckProtectGroup.setSelection(item.isProtectGroup());
+			btnCheckProtectGroup.setSelection(item.isPreserveGroup());
 		}
 		new Label(composite, SWT.NONE);
 		
 		btnCheckProtectOwner = new Button(composite, SWT.CHECK);
 		btnCheckProtectOwner.setText(Messages.getString("PROTECT_OWNER"));
 		if (item != null) {
-			btnCheckProtectOwner.setSelection(item.isProtectOwner());
+			btnCheckProtectOwner.setSelection(item.isPreserveOwner());
 		}
 		
 		btnCheckProtectPermissions = new Button(composite, SWT.CHECK);
 		btnCheckProtectPermissions.setText(Messages.getString("PROTECT_PERMISSIONS"));
 		if (item != null) {
-			btnCheckProtectPermissions.setSelection(item.isProtectPermissions());
+			btnCheckProtectPermissions.setSelection(item.isPreservePermissions());
 		}
 		new Label(composite, SWT.NONE);
 		
@@ -129,7 +129,7 @@ public class BackupParametersListItemDialog extends TrayDialog {
 		btnCheckUpdateOnlyExistings = new Button(composite, SWT.CHECK);
 		btnCheckUpdateOnlyExistings.setText(Messages.getString("UPDATE_ONLY_EXISTINGS"));
 		if (item != null) {
-			btnCheckUpdateOnlyExistings.setSelection(item.isUpdateOnlyExistings());
+			btnCheckUpdateOnlyExistings.setSelection(item.isExistingOnly());
 		}
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
@@ -184,15 +184,15 @@ public class BackupParametersListItemDialog extends TrayDialog {
 			editMode = false;
 		}
 		// Set values
-		item.setDirectory(txtDirectory.getText());
-		item.setExcludeFileTypes(txtExcludeFileTypes.getText());
+		item.setSourcePath(txtDirectory.getText());
+		item.setExcludePattern(txtExcludeFileTypes.getText());
 		item.setRecursive(btnCheckRecursive.getSelection());
-		item.setProtectGroup(btnCheckProtectGroup.getSelection());
-		item.setProtectOwner(btnCheckProtectOwner.getSelection());
-		item.setProtectPermissions(btnCheckProtectPermissions.getSelection());
+		item.setPreserveGroup(btnCheckProtectGroup.getSelection());
+		item.setPreserveOwner(btnCheckProtectOwner.getSelection());
+		item.setPreservePermissions(btnCheckProtectPermissions.getSelection());
 		item.setArchive(btnCheckArchive.getSelection());
 		item.setCompress(btnCheckCompress.getSelection());
-		item.setUpdateOnlyExistings(btnCheckUpdateOnlyExistings.getSelection());
+		item.setExistingOnly(btnCheckUpdateOnlyExistings.getSelection());
 		item.setLogicalVolume(txtLogicalVolume.getText());
 		item.setVirtualGroup(txtVirtualGroup.getText());
 		item.setLogicalVolumeSize(txtLogicalVolumeSize.getText());

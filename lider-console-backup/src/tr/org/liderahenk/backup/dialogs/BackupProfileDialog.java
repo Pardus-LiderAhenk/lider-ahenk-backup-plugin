@@ -83,7 +83,6 @@ public class BackupProfileDialog implements IProfileDialog {
 		btnCheckSSH.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				txtUsername.setEnabled(!btnCheckSSH.getSelection());
 				txtPassword.setEnabled(!btnCheckSSH.getSelection());
 			}
 
@@ -139,7 +138,7 @@ public class BackupProfileDialog implements IProfileDialog {
 		txtDestDir = new Text(composite, SWT.BORDER);
 		txtDestDir.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		if (profile != null && profile.getProfileData() != null) {
-			txtDestDir.setText(profile.getProfileData().get(BackupConstants.PARAMETERS.DEST_DIR).toString());
+			txtDestDir.setText(profile.getProfileData().get(BackupConstants.PARAMETERS.DEST_PATH).toString());
 		}
 		
 		btnCheckLVM = new Button(composite, SWT.CHECK);
@@ -277,11 +276,11 @@ public class BackupProfileDialog implements IProfileDialog {
 			if (list != null) {
 				List<BackupParametersListItem> items = new ArrayList<BackupParametersListItem>();
 				for (LinkedHashMap<String, Object> map : list) {
-					BackupParametersListItem item = new BackupParametersListItem((String) map.get("directory"),
-							(String) map.get("excludeFileTypes"), (String) map.get("logicalVolume"), (String) map.get("virtualGroup"),
-							(String) map.get("logicalVolumeSize"), (boolean) map.get("recursive"), (boolean) map.get("protectGroup"),
-							(boolean) map.get("protectOwner"), (boolean) map.get("protectPermissions"), (boolean) map.get("archive"),
-							(boolean) map.get("compress"), (boolean) map.get("updateOnlyExistings"));
+					BackupParametersListItem item = new BackupParametersListItem((String) map.get("sourcePath"),
+							(String) map.get("excludePattern"), (String) map.get("logicalVolume"), (String) map.get("virtualGroup"),
+							(String) map.get("logicalVolumeSize"), (boolean) map.get("recursive"), (boolean) map.get("preserveGroup"),
+							(boolean) map.get("preserveOwner"), (boolean) map.get("preservePermissions"), (boolean) map.get("archive"),
+							(boolean) map.get("compress"), (boolean) map.get("existingOnly"));
 					items.add(item);
 				}
 				tableViewer.setInput(items);
@@ -346,7 +345,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).getDirectory();
+					return ((BackupParametersListItem) element).getSourcePath();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -357,7 +356,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).getExcludeFileTypes();
+					return ((BackupParametersListItem) element).getExcludePattern();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -379,7 +378,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).isProtectGroup() ? Messages.getString("YES") : Messages.getString("NO");
+					return ((BackupParametersListItem) element).isPreserveGroup() ? Messages.getString("YES") : Messages.getString("NO");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -390,7 +389,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).isProtectOwner() ? Messages.getString("YES") : Messages.getString("NO");
+					return ((BackupParametersListItem) element).isPreserveOwner() ? Messages.getString("YES") : Messages.getString("NO");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -401,7 +400,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).isProtectPermissions() ? Messages.getString("YES") : Messages.getString("NO");
+					return ((BackupParametersListItem) element).isPreservePermissions() ? Messages.getString("YES") : Messages.getString("NO");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -434,7 +433,7 @@ public class BackupProfileDialog implements IProfileDialog {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof BackupParametersListItem) {
-					return ((BackupParametersListItem) element).isUpdateOnlyExistings() ? Messages.getString("YES") : Messages.getString("NO");
+					return ((BackupParametersListItem) element).isExistingOnly() ? Messages.getString("YES") : Messages.getString("NO");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -464,18 +463,14 @@ public class BackupProfileDialog implements IProfileDialog {
 	public Map<String, Object> getProfileData() throws Exception
 	{
 		Map<String, Object> profileData = new HashMap<String, Object>();
-		if (!btnCheckSSH.getSelection()) {
-			profileData.put(BackupConstants.PARAMETERS.USERNAME, txtUsername.getText());
-			profileData.put(BackupConstants.PARAMETERS.PASSWORD, txtPassword.getText());
-		} else {
-			profileData.put(BackupConstants.PARAMETERS.USE_SSH_KEY, btnCheckSSH.getSelection());
-		}
-		if (btnCheckLVM.getSelection()) {
-			profileData.put(BackupConstants.PARAMETERS.USE_SSH_KEY, btnCheckLVM.getSelection());
-		}
+
+		profileData.put(BackupConstants.PARAMETERS.PASSWORD, txtPassword.getText());
+		profileData.put(BackupConstants.PARAMETERS.USERNAME, txtUsername.getText());
+		profileData.put(BackupConstants.PARAMETERS.USE_SSH_KEY, btnCheckSSH.getSelection());
+		profileData.put(BackupConstants.PARAMETERS.USE_LVM, btnCheckLVM.getSelection());
 		profileData.put(BackupConstants.PARAMETERS.DEST_HOST, txtDestHost.getText());
 		profileData.put(BackupConstants.PARAMETERS.DEST_PORT, txtDestPort.getText());
-		profileData.put(BackupConstants.PARAMETERS.DEST_DIR, txtDestDir.getText());
+		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, txtDestDir.getText());
 
 		List<BackupParametersListItem> items = (List<BackupParametersListItem>) tableViewer.getInput();
 		if (items != null) {
