@@ -32,12 +32,12 @@ public class BackupParametersListItemDialog extends TrayDialog {
 	// Table
 	private TableViewer tableViewer;
 	// Widgets
-	private Text   txtDirectory;
+	private Text   txtSourcePath;
 	private Text   txtExcludeFileTypes;
 	private Button btnCheckRecursive;
-	private Button btnCheckProtectGroup;
-	private Button btnCheckProtectOwner;
-	private Button btnCheckProtectPermissions;
+	private Button btnCheckPreserveGroup;
+	private Button btnCheckPreserveOwner;
+	private Button btnCheckPreservePermissions;
 	private Button btnCheckArchive;
 	private Button btnCheckCompress;
 	private Button btnCheckUpdateOnlyExistings;
@@ -71,10 +71,10 @@ public class BackupParametersListItemDialog extends TrayDialog {
 
 		Label lblDir = new Label(composite, SWT.NONE);
 		lblDir.setText(Messages.getString("BACKUP_DIR"));
-		txtDirectory = new Text(composite, SWT.BORDER);
-		txtDirectory.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
+		txtSourcePath = new Text(composite, SWT.BORDER);
+		txtSourcePath.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
 		if (item != null && item.getSourcePath() != null) {
-			txtDirectory.setText(item.getSourcePath());
+			txtSourcePath.setText(item.getSourcePath());
 		}
 		new Label(composite, SWT.NONE);
 
@@ -93,23 +93,23 @@ public class BackupParametersListItemDialog extends TrayDialog {
 			btnCheckRecursive.setSelection(item.isRecursive());
 		}
 		
-		btnCheckProtectGroup = new Button(composite, SWT.CHECK);
-		btnCheckProtectGroup.setText(Messages.getString("PROTECT_GROUP"));
+		btnCheckPreserveGroup = new Button(composite, SWT.CHECK);
+		btnCheckPreserveGroup.setText(Messages.getString("PROTECT_GROUP"));
 		if (item != null) {
-			btnCheckProtectGroup.setSelection(item.isPreserveGroup());
+			btnCheckPreserveGroup.setSelection(item.isPreserveGroup());
 		}
 		new Label(composite, SWT.NONE);
 		
-		btnCheckProtectOwner = new Button(composite, SWT.CHECK);
-		btnCheckProtectOwner.setText(Messages.getString("PROTECT_OWNER"));
+		btnCheckPreserveOwner = new Button(composite, SWT.CHECK);
+		btnCheckPreserveOwner.setText(Messages.getString("PROTECT_OWNER"));
 		if (item != null) {
-			btnCheckProtectOwner.setSelection(item.isPreserveOwner());
+			btnCheckPreserveOwner.setSelection(item.isPreserveOwner());
 		}
 		
-		btnCheckProtectPermissions = new Button(composite, SWT.CHECK);
-		btnCheckProtectPermissions.setText(Messages.getString("PROTECT_PERMISSIONS"));
+		btnCheckPreservePermissions = new Button(composite, SWT.CHECK);
+		btnCheckPreservePermissions.setText(Messages.getString("PROTECT_PERMISSIONS"));
 		if (item != null) {
-			btnCheckProtectPermissions.setSelection(item.isPreservePermissions());
+			btnCheckPreservePermissions.setSelection(item.isPreservePermissions());
 		}
 		new Label(composite, SWT.NONE);
 		
@@ -173,8 +173,13 @@ public class BackupParametersListItemDialog extends TrayDialog {
 
 		setReturnCode(OK);
 
-		if (txtDirectory.getText().isEmpty()) {
-			Notifier.error(null, Messages.getString("FILL_BACKUP_DIR"));
+		if (txtSourcePath.getText().isEmpty()) {
+			Notifier.warning(null, Messages.getString("FILL_BACKUP_DIR"));
+			return;
+		}
+		if (LVMChecked && (txtLogicalVolume.getText().isEmpty() || txtLogicalVolumeSize.getText().isEmpty()
+				|| txtVirtualGroup.getText().isEmpty())) {
+			Notifier.warning(null, Messages.getString("FILL_LVM_PARAMS"));
 			return;
 		}
 
@@ -184,12 +189,12 @@ public class BackupParametersListItemDialog extends TrayDialog {
 			editMode = false;
 		}
 		// Set values
-		item.setSourcePath(txtDirectory.getText());
+		item.setSourcePath(txtSourcePath.getText());
 		item.setExcludePattern(txtExcludeFileTypes.getText());
 		item.setRecursive(btnCheckRecursive.getSelection());
-		item.setPreserveGroup(btnCheckProtectGroup.getSelection());
-		item.setPreserveOwner(btnCheckProtectOwner.getSelection());
-		item.setPreservePermissions(btnCheckProtectPermissions.getSelection());
+		item.setPreserveGroup(btnCheckPreserveGroup.getSelection());
+		item.setPreserveOwner(btnCheckPreserveOwner.getSelection());
+		item.setPreservePermissions(btnCheckPreservePermissions.getSelection());
 		item.setArchive(btnCheckArchive.getSelection());
 		item.setCompress(btnCheckCompress.getSelection());
 		item.setExistingOnly(btnCheckUpdateOnlyExistings.getSelection());
