@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.backup.constants.BackupConstants;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
+import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 
 /**
  * Task execution dialog for backup plugin.
@@ -40,9 +41,9 @@ public class BackupTaskDialog extends DefaultTaskDialog {
 	}
 
 	@Override
-	public boolean validateBeforeExecution() {
+	public void validateBeforeExecution() throws ValidationException {
 		logger.debug("Backup Task - Validation is in progress.");
-		return backupDialog.validateProfile();
+		backupDialog.validateProfile();
 	}
 
 	@Override

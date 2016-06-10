@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.dialogs.IProfileDialog;
+import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.model.Profile;
 
 public class BackupProfileDialog implements IProfileDialog {
@@ -31,14 +32,15 @@ public class BackupProfileDialog implements IProfileDialog {
 	
 	@Override
 	public Map<String, Object> getProfileData() {
-		Map<String, Object> data = null;
-		logger.debug("Backup Profile - Validation is in progress.");
-		if (backupDialog.validateProfile()) {
-			logger.debug("Backup Profile - Profile Data recieved: {} ", data);
-			data = backupDialog.getParameterData();
-		}
+		Map<String, Object> data = backupDialog.getParameterData();
+		logger.debug("Backup Profile - Profile Data recieved: {} ", data);
 		return data;
 	}
-	
+
+	@Override
+	public void validateBeforeSave() throws ValidationException {
+		logger.debug("Backup Profile - Validation is in progress.");
+		backupDialog.validateProfile();
+	}
 	
 }

@@ -5,7 +5,7 @@
 from plugins.backup.backup_util import BackupUtil
 
 def handle_policy(profile_data, context):
-    print("This is backup plugin")
+    print("Backup Plugin Policy")
     print('Data: {}'.format(str(profile_data)))
-    backup = BackupUtil(profile_data, context)
+    backup = BackupUtil(profile_data, context, "policy")
     backup.backup()

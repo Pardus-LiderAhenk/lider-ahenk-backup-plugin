@@ -32,6 +32,7 @@ import tr.org.liderahenk.backup.constants.BackupConstants;
 import tr.org.liderahenk.backup.i18n.Messages;
 import tr.org.liderahenk.backup.model.BackupParametersListItem;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
@@ -42,7 +43,7 @@ public class BackupDialogBase {
 	private Text   	  txtPassword;
 	private Text   	  txtDestHost;
 	private Text   	  txtDestPort;
-	private Text   	  txtDestDir;
+	private Text   	  txtDestPath;
 	private Button 	  btnCheckLVM;
 	private Composite   tableComposite;
 	private TableViewer tableViewer;
@@ -126,10 +127,10 @@ public class BackupDialogBase {
 		Label labelDir = new Label(composite, SWT.NONE);
 		labelDir.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		labelDir.setText(Messages.getString("DEST_DIR"));
-		txtDestDir = new Text(composite, SWT.BORDER);
-		txtDestDir.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		txtDestPath = new Text(composite, SWT.BORDER);
+		txtDestPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		if (profileData != null) {
-			txtDestDir.setText(profileData.get(BackupConstants.PARAMETERS.DEST_PATH).toString());
+			txtDestPath.setText(profileData.get(BackupConstants.PARAMETERS.DEST_PATH).toString());
 		}
 		
 		btnCheckLVM = new Button(composite, SWT.CHECK);
@@ -265,6 +266,7 @@ public class BackupDialogBase {
 			if (list != null) {
 				List<BackupParametersListItem> items = new ArrayList<BackupParametersListItem>();
 				for (LinkedHashMap<String, Object> map : list) {
+					// TODO IMPROVEMENT use object mapper instead of this constructor!
 					BackupParametersListItem item = new BackupParametersListItem((String) map.get("sourcePath"),
 							(String) map.get("excludePattern"), (String) map.get("logicalVolume"), (String) map.get("virtualGroup"),
 							(String) map.get("logicalVolumeSize"), (boolean) map.get("recursive"), (boolean) map.get("preserveGroup"),
@@ -458,7 +460,7 @@ public class BackupDialogBase {
 		profileData.put(BackupConstants.PARAMETERS.USE_LVM, btnCheckLVM.getSelection());
 		profileData.put(BackupConstants.PARAMETERS.DEST_HOST, txtDestHost.getText());
 		profileData.put(BackupConstants.PARAMETERS.DEST_PORT, txtDestPort.getText());
-		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, txtDestDir.getText());
+		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, txtDestPath.getText());
 
 		List<BackupParametersListItem> items = (List<BackupParametersListItem>) tableViewer.getInput();
 		if (items != null) {
@@ -467,13 +469,18 @@ public class BackupDialogBase {
 		return profileData;
 	}
 	
-	public boolean validateProfile() 
+	@SuppressWarnings("unchecked")
+	public void validateProfile() throws ValidationException 
 	{
-		if (txtDestDir.getText().isEmpty()) {
-			Notifier.warning(null, Messages.getString("FILL_DEST_PATH"));
-			return false;
+		if (txtDestHost.getText().isEmpty() || txtUsername.getText().isEmpty()) {
+			throw new ValidationException(Messages.getString("FILL_DEST_HOST"));
 		}
-		return true;
+		if (!btnCheckSSH.getSelection() && txtPassword.getText().isEmpty()) {
+			throw new ValidationException(Messages.getString("FILL_PASSWORD"));
+		}
+		if ( tableViewer.getInput() == null || ((List<BackupParametersListItem>) tableViewer.getInput()).isEmpty()) {
+			throw new ValidationException(Messages.getString("FILL_SOURCE"));
+		}
 	}
 
 
