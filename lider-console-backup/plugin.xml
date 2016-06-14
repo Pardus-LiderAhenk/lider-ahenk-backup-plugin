@@ -80,7 +80,8 @@
  				<command
                   commandId="tr.org.liderahenk.liderconsole.commands.BackupProfile"
                   id="tr.org.liderahenk.liderconsole.commands.BackupProfile"
-                  tooltip="%command.profile">
+                  tooltip="%command.profile"
+                  icon="icons/16/backup.png">
                   <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
 				  <!-- <visibleWhen>
 					   <and>
@@ -118,7 +119,8 @@
  				<command
                   commandId="tr.org.liderahenk.liderconsole.commands.BackupTask"
                   id="tr.org.liderahenk.liderconsole.commands.BackupTask"
-                  tooltip="%command.task">
+                  tooltip="%command.task"
+                  icon="icons/16/backup.png">
                   <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
 				  <!-- <visibleWhen>
 					   <and>
