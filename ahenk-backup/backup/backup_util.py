@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # Author: Seren Piri <seren.piri@agem.com.tr>
 
-from base.plugin.abstract_plugin import AbstractPlugin
-import json
 import pexpect
-from base.model.enum.ContentType import ContentType
+import json
+from base.plugin.abstract_plugin import AbstractPlugin
+
 
 class BackupUtil(AbstractPlugin):
     def __init__(self, data, context, type):
@@ -14,26 +14,26 @@ class BackupUtil(AbstractPlugin):
         self.data = data
         self.context = context
         self.logger = self.get_logger()
-        self.message_code=self.get_message_code()
+        self.message_code = self.get_message_code()
+        self.content_type = self.get_content_type()
         self.__type = type
 
     def backup(self):
 
-        if self.__type == "task" :
+        if self.__type == "task":
             type = "task"
             resp_code = self.message_code.TASK_PROCESSED.value
             resp_err_code = self.message_code.TASK_ERROR.value
-        else  :
+        else:
             type = "profile"
             resp_code = self.message_code.POLICY_PROCESSED.value
             resp_err_code = self.message_code.POLICY_ERROR.value
 
         self.logger.debug("Starting to backup... Reading backup " + type + " json")
-        backupProfile = self.data
+        backupProfile = json.loads(str(self.data))
         self.logger.debug("Successfully readed backup " + type + " json.")
         destinationPath = str(backupProfile['username']) + '@' + str(backupProfile['destHost']) + ':' + str(backupProfile['destPath'])
         self.logger.debug("Destination path ==> " + str(destinationPath))
-
 
         for source in backupProfile['directories']:
             self.logger.debug("Trying to backup for source ==> " + str(source['sourcePath']))
@@ -46,12 +46,12 @@ class BackupUtil(AbstractPlugin):
                 logicalVolume = str(source['logicalVolume'])
                 virtualGroup = str(source['virtualGroup'])
                 create_lv_command = 'lvcreate -L ' + logicalVolumeSize + ' -s -n ' + logicalVolume + ' ' + virtualGroup
-                (result_code, p_out, p_err) = self.execute_command(create_lv_command, shell=True)
+                (result_code, p_out, p_err) = self.execute(create_lv_command, shell=True)
                 if (result_code == 0):
                     self.logger.debug('Logical volume created successfully. LV ==>' + str(logicalVolume))
-                    (result_code, p_out, p_err) = self.execute_command('mkdir -p ' + source['sourcePath'], shell=True)
-                    (result_code, p_out, p_err) = self.execute_command(
-                        'mount ' + logicalVolume + ' ' + source['sourcePath'], shell=True)
+                    (result_code, p_out, p_err) = self.execute('mkdir -p ' + source['sourcePath'], shell=True)
+                    (result_code, p_out, p_err) = self.execute(
+                            'mount ' + logicalVolume + ' ' + source['sourcePath'], shell=True)
                     self.logger.debug('Mount path created successfully. Mount path ==>' + source['sourcePath'])
 
             if source['recursive']:
@@ -77,10 +77,10 @@ class BackupUtil(AbstractPlugin):
                     sshOptions = ' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null --progress -p ' + str(backupProfile['destPort'])
                     command = 'rsync ' + options + ' -e "' + sshOptions + '" ' + path
                     self.logger.debug("Command ==> " + command)
-                    (result_code, p_out, p_err) = self.execute_command(command, shell=True)
+                    (result_code, p_out, p_err) = self.execute(command, shell=True)
                 else:
                     sshOptions = ' ssh -q -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oPubkeyAuthentication=no -p ' + str(
-                        backupProfile['destPort'])
+                            backupProfile['destPort'])
                     command = 'rsync ' + options + ' -e "' + sshOptions + '" ' + path
                     self.logger.debug("Command ==> " + command)
                     result_code = self.runCommandWithPassword(command, backupProfile['password'])
@@ -100,56 +100,55 @@ class BackupUtil(AbstractPlugin):
                 resp_code = resp_err_code
                 resp_message = str(e)
 
-            self.context.create_response(code=resp_code,  message=resp_message,  content_type=ContentType.APPLICATION_JSON.value)
-
+            self.context.create_response(code=resp_code, message=resp_message, content_type=self.content_type.APPLICATION_JSON.value)
 
     def runCommandWithPassword(self, command, password, timeout=5):
-        try :
+        try:
             child = pexpect.spawn(command, timeout=timeout)
             i = child.expect(['password: ', pexpect.EOF, pexpect.TIMEOUT])
-            if i == 0 :
+            if i == 0:
                 child.sendline(password)
                 child.expect(pexpect.EOF)
                 child.close()
                 return child.exitstatus
-            elif i == 1 :
+            elif i == 1:
                 return 999
-            elif i == 2 :
+            elif i == 2:
                 return 888
         except Exception as e:
             print(str(e))
-            if i == 0 :
+            if i == 0:
                 return 888
-            else :
+            else:
                 child.close()
                 print(child.exitstatus)
                 return child.exitstatus
 
     def getExitStatus(self, exitCode):
         switcher = {
-        #   0 : "Success",
-            1 : "Syntax or usage error",
-            2 : "Protocol incompatibility",
-            3 : "Errors selecting input / output files, dirs",
-            4 : "Requested action not supported: an attempt was made to manipulate 64 - bit files on a platform"
-                "\n that cannot support them; or an option was specified that is supported by the client and not by the server.",
-            5 : "Error starting client - server protocol",
-            6 : "Daemon unable to append to log - file",
-            10 : "Error in socket I / O",
-            11 : "Error in file I / O",
-            12 : "Error in rsync protocol data stream",
-            13 : "Errors with program diagnostics",
-            14 : "Error in IPC code",
-            20 : "Received SIGUSR1 or SIGINT",
-            21 : "Some error returned by waitpid()",
-            22 : "Error allocating core memory buffers",
-            23 : "Partial transfer due to error",
-            24 : "Partial transfer due to vanished source files",
-            25 : "The --max-delete limit stopped deletions",
-            30 : "Timeout in data send / receive",
-            35 : "Timeout waiting for daemon connection",
-            255 : "Please make certain of the backup parameters you have entered.",
-            888 : "Timeout exceeded. Destination could be unreachable \n or Please make certain of Password, Destination Host/Port, Dest./Source Path values you have entered.",
-            999 : "Rsync command returns EOF! Destination could be unreachable \n or Please make certain of Destination Host/Port you have entered."
+            #   0 : "Success",
+            1: "Syntax or usage error",
+            2: "Protocol incompatibility",
+            3: "Errors selecting input / output files, dirs",
+            4: "Requested action not supported: an attempt was made to manipulate 64 - bit files on a platform"
+               "\n that cannot support them; or an option was specified that is supported by the client and not by the server.",
+            5: "Error starting client - server protocol",
+            6: "Daemon unable to append to log - file",
+            10: "Error in socket I / O",
+            11: "Error in file I / O",
+            12: "Error in rsync protocol data stream",
+            13: "Errors with program diagnostics",
+            14: "Error in IPC code",
+            20: "Received SIGUSR1 or SIGINT",
+            21: "Some error returned by waitpid()",
+            22: "Error allocating core memory buffers",
+            23: "Partial transfer due to error",
+            24: "Partial transfer due to vanished source files",
+            25: "The --max-delete limit stopped deletions",
+            30: "Timeout in data send / receive",
+            35: "Timeout waiting for daemon connection",
+            255: "Please make certain of the backup parameters you have entered.",
+            888: "Timeout exceeded. Destination could be unreachable \n or Please make certain of Password, Destination Host/Port, Dest./Source Path values you have entered.",
+            999: "Rsync command returns EOF! Destination could be unreachable \n or Please make certain of Destination Host/Port you have entered."
         }
         return switcher.get(exitCode, "Exit Status Message for exit code '" + str(exitCode) + "' of rsync command is not found!")
