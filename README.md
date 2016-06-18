@@ -12,7 +12,7 @@ Backup plugin for [Lider Ahenk project](http://www.liderahenk.org.tr).
 
 ## How to Run
 
-> Make sure you have Lider, Lider Console and Ahen running. See these documentation:  [1](https://github.com/Pardus-Kurumsal/lider/wiki/02.-Building-&-Running), [2](https://github.com/Pardus-Kurumsal/lider-console/wiki/02.-Building-&-Running) and [3](https://github.com/Pardus-Kurumsal/ahenk/wiki/02.-Running).
+> Make sure you have Lider, Lider Console and Ahen running. See these documentation:  [\[1\]](https://github.com/Pardus-Kurumsal/lider/wiki/02.-Building-&-Running), [\[2\]](https://github.com/Pardus-Kurumsal/lider-console/wiki/02.-Building-&-Running) and [\[3\]](https://github.com/Pardus-Kurumsal/ahenk/wiki/02.-Running).
 
 #### Lider
 
