@@ -8,7 +8,7 @@ Backup plugin for [Lider Ahenk project](http://www.liderahenk.org.tr).
 
 1. Clone the plugin project by running `git clone https://github.com/Pardus-Kurumsal/lider-ahenk-backup-plugin.git`.
 2. Open Eclipse and import the plugin project into Eclipse as 'Existing Maven Projects'.
-3. Navigate to project/scripts directory and run build-plugin.sh.
+3. Navigate to _lider-ahenk-backup-plugin/scripts_ directory and run `build-plugin.sh`.
 
 ## How to Run
 
@@ -28,7 +28,7 @@ Backup plugin for [Lider Ahenk project](http://www.liderahenk.org.tr).
 
 #### Ahenk
 
-1. Create a soft link for _ahenk-backup/backup_ directory via `sudo ln -s your/project/directory/ahenk-backup/backup/ /opt/ahenk/plugins`
+1. Create a soft link for _ahenk-backup/backup_ directory via `sudo ln -s lider-ahenk-backup-plugin/ahenk-backup/backup/ /opt/ahenk/plugins`
 
 ## Contribution
 
