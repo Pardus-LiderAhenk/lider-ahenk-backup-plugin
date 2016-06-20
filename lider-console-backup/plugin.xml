@@ -27,46 +27,12 @@
        	<handler
             class="tr.org.liderahenk.backup.handlers.BackupProfileHandler"
             commandId="tr.org.liderahenk.liderconsole.commands.BackupProfile">
-           <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
-		   <!-- <enabledWhen>
-				<and>
-		          <with
-		                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
-		             <equals
-		                   value="true">
-		             </equals>
-		          </with>
-				<with
-	                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
-	             	<equals
-		                   value="true">
-		            </equals>
-	          	</with>
-		       </and>
-		    </enabledWhen> -->        
       	</handler>
       	
       	<!-- Task handler -->
        <handler
             class="tr.org.liderahenk.backup.handlers.BackupTaskHandler"
             commandId="tr.org.liderahenk.liderconsole.commands.BackupTask">
-           <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
-		   <!-- <enabledWhen>
-				<and>
-		          <with
-		                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
-		             <equals
-		                   value="true">
-		             </equals>
-		          </with>
-				<with
-	                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
-	             	<equals
-		                   value="true">
-		            </equals>
-	          	</with>
-		       </and>
-		    </enabledWhen> -->        
       </handler>
       
   </extension>
@@ -82,33 +48,6 @@
                   id="tr.org.liderahenk.liderconsole.commands.BackupProfile"
                   tooltip="%command.profile"
                   icon="icons/16/backup.png">
-                  <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
-				  <!-- <visibleWhen>
-					   <and>
-			                <iterate operator="or">		
-			                	<or>
-							  	<with
-					                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isSearchSelected">
-						             <equals
-						                   value="true">
-						             </equals>
-					          	</with>
-					          	<with
-					                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isEntrySelected">
-						             <equals
-						                   value="true">
-						             </equals>
-					          	</with>
-					        	</or>
-					        </iterate>
-							<with
-				                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
-				             	<equals
-					                   value="true">
-					            </equals>
-				          	</with>
-					    </and>
-					</visibleWhen> -->               
            		</command>
 		</menuContribution>
       
@@ -121,33 +60,14 @@
                   id="tr.org.liderahenk.liderconsole.commands.BackupTask"
                   tooltip="%command.task"
                   icon="icons/16/backup.png">
-                  <!-- TODO Uncomment this after updating/fixing LiderSourceProvider -->
-				  <!-- <visibleWhen>
-					   <and>
-			                <iterate operator="or">		
-			                	<or>
-							  	<with
-					                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isSearchSelected">
-						             <equals
-						                   value="true">
-						             </equals>
-					          	</with>
-					          	<with
-					                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isEntrySelected">
-						             <equals
-						                   value="true">
-						             </equals>
-					          	</with>
-					        	</or>
-					        </iterate>
-							<with
-				                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
-				             	<equals
-					                   value="true">
-					            </equals>
-				          	</with>
-					    </and>
-					</visibleWhen> -->               
+				  	<visibleWhen>
+						<with
+			                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
+			             	<equals
+				                   value="true">
+				            </equals>
+			          	</with>
+					</visibleWhen>             
            		</command>
 		</menuContribution>
   </extension>
@@ -155,7 +75,16 @@
 	<!-- Add extension point contribution for "policy execution" dialogs -->
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.policymenu">
-  		<policyItem label="%command.profile" pluginName="backup" pluginVersion="1.0.0" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile" />
+  		<policyItem label="%command.profile" pluginName="backup" pluginVersion="1.0.0" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile">
+			  	<visibleWhen>
+					<with
+		                variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isAhenkSelected">
+		             	<equals
+			                   value="true">
+			            </equals>
+		          	</with>
+				</visibleWhen>
+  		</policyItem>
   	</extension>
   	
 </plugin>
