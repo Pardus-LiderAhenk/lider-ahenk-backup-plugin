@@ -87,13 +87,13 @@ class BackupUtil(AbstractPlugin):
 
                 if result_code == 0:
                     self.logger.info("Sync is successfull for source ==> " + str(source['sourcePath']))
-                    resp_message = "The backup process was completed successfully."
+                    resp_message = "Backup işlemi başarıyla tamamlandı."
                 else:
                     print(result_code)
                     self.logger.error("The backup process is unsuccessfull for destination ==> " + destinationPath + "  and source ==> " + str(source['sourcePath'])
                                       + " \n" + self.getExitStatus(int(result_code)))
                     resp_code = resp_err_code
-                    resp_message = self.getExitStatus(int(result_code)) + " \n[From Source: " + str(source['sourcePath']) + " to Dest.: " + destinationPath + "]"
+                    resp_message = self.getExitStatus(int(result_code)) + " \n[Kaynak: " + str(source['sourcePath']) + " Hedef: " + destinationPath + "]"
 
             except Exception as e:
                 self.logger.error("Exception ==> " + str(e))
