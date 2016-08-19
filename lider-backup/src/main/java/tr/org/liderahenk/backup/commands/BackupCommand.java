@@ -16,18 +16,12 @@ public class BackupCommand implements ICommand {
 
 	@Override
 	public ICommandResult execute(ICommandContext context) throws Exception {
-		return resultFactory.create(CommandResultStatus.OK,
-				new ArrayList<String>(), this);
+		return resultFactory.create(CommandResultStatus.OK, new ArrayList<String>(), this);
 	}
 
 	@Override
 	public ICommandResult validate(ICommandContext context) {
 		return resultFactory.create(CommandResultStatus.OK, null, this);
-	}
-
-
-	public void setPluginInfo(PluginInfoImpl pluginInfo) {
-		this.pluginInfo = pluginInfo;
 	}
 
 	@Override
@@ -39,6 +33,7 @@ public class BackupCommand implements ICommand {
 	public String getPluginVersion() {
 		return pluginInfo.getPluginVersion();
 	}
+
 	@Override
 	public String getCommandId() {
 		return "BACKUP_TASK";
@@ -52,4 +47,9 @@ public class BackupCommand implements ICommand {
 	public void setResultFactory(ICommandResultFactory resultFactory) {
 		this.resultFactory = resultFactory;
 	}
+
+	public void setPluginInfo(PluginInfoImpl pluginInfo) {
+		this.pluginInfo = pluginInfo;
+	}
+
 }
