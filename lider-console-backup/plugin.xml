@@ -78,4 +78,11 @@
   		<policyItem label="%command.profile" pluginName="backup" pluginVersion="1.0.0" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile" />
   	</extension>
   	
+	<!-- Add extension point contribution for i18n messages -->
+	<extension
+  		point="tr.org.liderahenk.liderconsole.core.i18n">
+  		<task code="backup_task" label="%command.task" />
+  		<plugin name="backup" label="%plugin.label" />
+  	</extension>
+  	
 </plugin>
