@@ -102,7 +102,7 @@ class BackupUtil(AbstractPlugin):
 
             self.context.create_response(code=resp_code, message=resp_message, content_type=self.content_type.APPLICATION_JSON.value)
 
-    def runCommandWithPassword(self, command, password, timeout=5):
+    def runCommandWithPassword(self, command, password, timeout=30):
         try:
             child = pexpect.spawn(command, timeout=timeout)
             i = child.expect(['password: ', pexpect.EOF, pexpect.TIMEOUT])
