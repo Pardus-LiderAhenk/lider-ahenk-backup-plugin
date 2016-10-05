@@ -3,14 +3,13 @@
 # Author: Seren Piri <seren.piri@agem.com.tr>
 
 import pexpect
-import json
+
 from base.plugin.abstract_plugin import AbstractPlugin
 
 
 class BackupUtil(AbstractPlugin):
     def __init__(self, data, context, type):
         super(AbstractPlugin, self).__init__()
-        print('Init backup...')
         self.data = data
         self.context = context
         self.logger = self.get_logger()
@@ -30,18 +29,21 @@ class BackupUtil(AbstractPlugin):
             resp_err_code = self.message_code.POLICY_ERROR.value
 
         self.logger.debug("Starting to backup... Reading backup " + type + " json")
-        backupProfile = json.loads(str(self.data))
-        self.logger.debug("Successfully readed backup " + type + " json.")
-        destinationPath = str(backupProfile['username']) + '@' + str(backupProfile['destHost']) + ':' + str(backupProfile['destPath'])
-        self.logger.debug("Destination path ==> " + str(destinationPath))
 
-        for source in backupProfile['directories']:
+        backup_profile = self.data
+
+        self.logger.debug("Successfully read backup " + type + " json.")
+        destination_path = str(backup_profile['username']) + '@' + str(backup_profile['destHost']) + ':' + str(
+            backup_profile['destPath'])
+        self.logger.debug("Destination path ==> " + str(destination_path))
+
+        for source in backup_profile['directories']:
             self.logger.debug("Trying to backup for source ==> " + str(source['sourcePath']))
             options = ''
-            path = source['sourcePath'] + ' ' + destinationPath
+            path = source['sourcePath'] + ' ' + destination_path
             command = ''
 
-            if backupProfile['useLvmShadow']:
+            if backup_profile['useLvmShadow']:
                 logicalVolumeSize = str(source['logicalVolumeSize'])
                 logicalVolume = str(source['logicalVolume'])
                 virtualGroup = str(source['virtualGroup'])
@@ -51,7 +53,7 @@ class BackupUtil(AbstractPlugin):
                     self.logger.debug('Logical volume created successfully. LV ==>' + str(logicalVolume))
                     (result_code, p_out, p_err) = self.execute('mkdir -p ' + source['sourcePath'], shell=True)
                     (result_code, p_out, p_err) = self.execute(
-                            'mount ' + logicalVolume + ' ' + source['sourcePath'], shell=True)
+                        'mount ' + logicalVolume + ' ' + source['sourcePath'], shell=True)
                     self.logger.debug('Mount path created successfully. Mount path ==>' + source['sourcePath'])
 
             if source['recursive']:
@@ -73,34 +75,38 @@ class BackupUtil(AbstractPlugin):
 
             try:
                 result_code = -1
-                if (backupProfile['useSsh']):
-                    sshOptions = ' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null --progress -p ' + str(backupProfile['destPort'])
+                if (backup_profile['useSsh']):
+                    sshOptions = ' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null --progress -p ' + str(
+                        backup_profile['destPort'])
                     command = 'rsync ' + options + ' -e "' + sshOptions + '" ' + path
                     self.logger.debug("Command ==> " + command)
                     (result_code, p_out, p_err) = self.execute(command, shell=True)
                 else:
                     sshOptions = ' ssh -q -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oPubkeyAuthentication=no -p ' + str(
-                            backupProfile['destPort'])
+                        backup_profile['destPort'])
                     command = 'rsync ' + options + ' -e "' + sshOptions + '" ' + path
                     self.logger.debug("Command ==> " + command)
-                    result_code = self.runCommandWithPassword(command, backupProfile['password'])
+                    result_code = self.runCommandWithPassword(command, backup_profile['password'])
 
                 if result_code == 0:
                     self.logger.info("Sync is successfull for source ==> " + str(source['sourcePath']))
                     resp_message = "Backup işlemi başarıyla tamamlandı."
                 else:
-                    print(result_code)
-                    self.logger.error("The backup process is unsuccessfull for destination ==> " + destinationPath + "  and source ==> " + str(source['sourcePath'])
-                                      + " \n" + self.getExitStatus(int(result_code)))
+                    self.logger.error(
+                        "The backup process is unsuccessfull for destination ==> " + destination_path + "  and source ==> " + str(
+                            source['sourcePath'])
+                        + " \n" + self.getExitStatus(int(result_code)))
                     resp_code = resp_err_code
-                    resp_message = self.getExitStatus(int(result_code)) + " \n[Kaynak: " + str(source['sourcePath']) + " Hedef: " + destinationPath + "]"
+                    resp_message = "Hata mesajı: " + self.getExitStatus(int(result_code)) + " \n[Kaynak: " + str(
+                        source['sourcePath']) + " Hedef: " + destination_path + "]"
 
             except Exception as e:
                 self.logger.error("Exception ==> " + str(e))
                 resp_code = resp_err_code
                 resp_message = str(e)
 
-            self.context.create_response(code=resp_code, message=resp_message, content_type=self.content_type.APPLICATION_JSON.value)
+            self.context.create_response(code=resp_code, message=resp_message,
+                                         content_type=self.content_type.APPLICATION_JSON.value)
 
     def runCommandWithPassword(self, command, password, timeout=30):
         try:
@@ -116,12 +122,11 @@ class BackupUtil(AbstractPlugin):
             elif i == 2:
                 return 888
         except Exception as e:
-            print(str(e))
+            self.logger.warning('runCommandWithPassword Error: {0}'.format(str(e)))
             if i == 0:
                 return 888
             else:
                 child.close()
-                print(child.exitstatus)
                 return child.exitstatus
 
     def getExitStatus(self, exitCode):
@@ -151,4 +156,5 @@ class BackupUtil(AbstractPlugin):
             888: "Timeout exceeded. Destination could be unreachable \n or Please make certain of Password, Destination Host/Port, Dest./Source Path values you have entered.",
             999: "Rsync command returns EOF! Destination could be unreachable \n or Please make certain of Destination Host/Port you have entered."
         }
-        return switcher.get(exitCode, "Exit Status Message for exit code '" + str(exitCode) + "' of rsync command is not found!")
+        return switcher.get(exitCode,
+                            "Exit Status Message for exit code '" + str(exitCode) + "' of rsync command is not found!")

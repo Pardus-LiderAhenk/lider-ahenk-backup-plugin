@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 # Author: Seren Piri <seren.piri@agem.com.tr>
 
-from plugins.backup.backup_util import BackupUtil
+import sys
+import os.path
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+
+from backup_util import BackupUtil
 
 def handle_task(task, context):
-    print('Backup Plugin Task')
-    print('Task Data : {}'.format(str(task)))
-    backup = BackupUtil(task, context, "task")
+    backup = BackupUtil(task, context, 'task')
     backup.backup()
