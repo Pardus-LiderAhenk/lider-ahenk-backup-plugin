@@ -6,7 +6,7 @@
 def info():
     inf = dict()
     inf['name'] = 'backup'
-    inf['version'] = '1.0.0'
+    inf['version'] = '1.0.0-beta'
     inf['support'] = 'debian'
     inf['description'] = ''
     inf['task'] = True

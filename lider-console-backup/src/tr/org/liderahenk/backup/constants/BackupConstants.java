@@ -3,7 +3,7 @@ package tr.org.liderahenk.backup.constants;
 public class BackupConstants {
 	
 	public static final String PLUGIN_NAME 	  = "backup";
-	public static final String PLUGIN_VERSION = "1.0.0";
+	public static final String PLUGIN_VERSION = "1.0.0-beta";
 	
 	public static final String DEFAULT_PORT   = "22";
 
