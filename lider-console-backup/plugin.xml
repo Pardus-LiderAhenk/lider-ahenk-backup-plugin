@@ -93,11 +93,11 @@
   		pluginVersion="1.0.0" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile"
   		 />
   	</extension>
-  	
+  		<!-- Add extension point contribution for "task execution" dialogs -->
   	
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
-  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" />
+  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.."/>
   	</extension>
   	
 	<!-- Add extension point contribution for i18n messages -->
