@@ -97,7 +97,7 @@
   	
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
-  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.."/>
+  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
   	</extension>
   	
 	<!-- Add extension point contribution for i18n messages -->
