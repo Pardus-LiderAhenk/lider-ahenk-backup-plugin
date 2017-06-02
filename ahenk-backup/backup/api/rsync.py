@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import subprocess,sys, os
+import subprocess,sys, os, thread
 from requests.api import options
 from pip.cmdoptions import process_dependency_links
 from pexpect import expect
+import cmd
 
 class BackupRsync():
     def __init__(self, backup_data):
         super(BackupRsync, self).__init__()
         self.backup_data = backup_data
+        self.backup_result = []
     
-    def prepareCommand(self):
+    def prepare_command(self):
         destinationPath = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
         for backup_directory in self.backup_data['directories']:
             path = backup_directory['sourcePath'] + ' ' + destinationPath
@@ -47,14 +49,27 @@ class BackupRsync():
         except Exception as e:
             return str(e)
     
-    def getResourceTotalSize(self,sourcePath):
+    def get_resource_total_size(self,sourcePath):
         return os.stat(sourcePath).st_size
     
-    def isFile(self,sourcePath):
-        return os.path.isfile(sourcePath)
+    def is_file(self,source_path):
+        return os.path.isfile(source_path)
     
+    def append_command_execution_type(self,cmd):
+        return 'sshpass -p ' + self.backup_data['password'] + cmd
     
+    def backup(self):
+        cmd = self.append_command_execution_type(self.prepare_command())
+        self.execute_command(cmd)
     
+    def backup_watcher(self):
+        print(self.backup_result)
+    
+    def start_backup_watcher(self):
+        try:
+            thread.start_new_thread (backup_watcher, None)
+        except Exception as e:
+            print(e)
     
     
     
