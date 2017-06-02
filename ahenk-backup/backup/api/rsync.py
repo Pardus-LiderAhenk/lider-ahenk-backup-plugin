@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import subprocess,sys, os, thread
+import subprocess,sys, os, thread, time
 from requests.api import options
 from pip.cmdoptions import process_dependency_links
 from pexpect import expect
@@ -12,6 +12,7 @@ class BackupRsync():
         super(BackupRsync, self).__init__()
         self.backup_data = backup_data
         self.backup_result = []
+        self.is_resume_backup_process = True
     
     def prepare_command(self):
         destinationPath = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
@@ -43,9 +44,11 @@ class BackupRsync():
             while True:
                 output = process.stdout.readline()
                 if output == '' or process.poll() is not None:
-                    return 0
+                    self.backup_result['status'] = 'complated'
                 if output:
-                    print('in progress')
+                    output_arr = output.split()
+                    if len(output_arr) > 1:
+                        self.backup_result['complated_percentage'] = output_arr[2].replace('%', '')
         except Exception as e:
             return str(e)
     
@@ -60,10 +63,20 @@ class BackupRsync():
     
     def backup(self):
         cmd = self.append_command_execution_type(self.prepare_command())
+        self.start_backup_watcher()
         self.execute_command(cmd)
     
     def backup_watcher(self):
-        print(self.backup_result)
+        while self.is_resume_backup_process:
+            try:
+                time.sleep(5)
+                if self.backup_result['status'] == 'complated':
+                    print('Finished backup process') # Send this to lider server
+                    self.is_resume_backup_process = False
+                else:
+                    print(self.backup_result['complated_percentage']) # Send this to lider server
+            except Exception as e:
+                print(e)
     
     def start_backup_watcher(self):
         try:
