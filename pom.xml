@@ -83,6 +83,7 @@
 		<module>lider-console-backup</module>
 		<module>ahenk-backup</module>
     <module>lider-console-backup-feature</module>
+    <module>lider-backup-db</module>
   </modules>
 
 	<build>
