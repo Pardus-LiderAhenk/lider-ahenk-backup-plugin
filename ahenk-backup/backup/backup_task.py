@@ -4,11 +4,15 @@
 
 import sys
 import os.path
+from pip.utils import backup_dir
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
 from backup_util import BackupUtil
+from api.rsync import BackupRsync
 
 def handle_task(task, context):
-    backup = BackupUtil(task, context, 'task')
+    backup = BackupRsync(task)
     backup.backup()
+    #backup = BackupUtil(task, context, 'task')
+    #backup.backup()
