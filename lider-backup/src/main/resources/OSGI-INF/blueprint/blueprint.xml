@@ -27,10 +27,16 @@
 		<property name="xbased" value="${plugin.x.based}" />
 	</bean>
 	
-	<!-- ICommand implementation is used to process a task execution -->
 	<service ref="backupCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
 	<bean id="backupCommand"
 		class="tr.org.liderahenk.backup.commands.BackupCommand">
+		<property name="pluginInfo" ref="pluginInfoImpl" />
+		<property name="resultFactory" ref="resultFactory" />
+	</bean>
+	
+	<service ref="backupWithMonitoringCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
+	<bean id="backupWithMonitoringCommand"
+		class="tr.org.liderahenk.backup.commands.BackupWithMonitoringCommand">
 		<property name="pluginInfo" ref="pluginInfoImpl" />
 		<property name="resultFactory" ref="resultFactory" />
 	</bean>

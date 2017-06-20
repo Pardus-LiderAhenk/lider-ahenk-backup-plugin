@@ -18,6 +18,11 @@
             id="tr.org.liderahenk.liderconsole.commands.BackupTask"            
             name="%command.task">
       </command>
+      <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask"            
+            name="%command.monitoring.task">
+      </command>
    </extension>
    
    <extension
@@ -33,6 +38,12 @@
        <handler
             class="tr.org.liderahenk.backup.handlers.BackupTaskHandler"
             commandId="tr.org.liderahenk.liderconsole.commands.BackupTask">
+      </handler>
+      	
+      	<!-- Task handler -->
+       <handler
+            class="tr.org.liderahenk.backup.handlers.BackupWithMonitoringTaskHandler"
+            commandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask">
       </handler>
       
   </extension>
@@ -84,6 +95,40 @@
         </visibleWhen>
            		</command>
 		</menuContribution>
+      
+      	<!-- Add extension point contribution for "task execution" dialogs -->
+		<menuContribution
+      		allPopups="false"
+            locationURI="popup:tr.org.liderahenk.liderconsole.menus.ApplyTask?after=additions">
+ 				<command
+                  commandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask"
+                  id="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask"
+                  tooltip="%command.monitoring.task"
+                  icon="icons/16/backup.png">
+        <visibleWhen>
+           <and>
+              <with
+                    variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                 <equals
+                       value="true">
+                 </equals>
+              </with>
+              <with
+                    variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isLdapUserSelected">
+                 <equals
+                       value="false">
+                 </equals>
+              </with>
+              <with
+                    variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.isLdapGroupSelected">
+                 <equals
+                       value="false">
+                 </equals>
+              </with>
+           </and>
+        </visibleWhen>
+           		</command>
+		</menuContribution>
   </extension>
   
 	<!-- Add extension point contribution for "policy execution" dialogs -->
@@ -98,6 +143,12 @@
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
   		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
+  	</extension>
+  		<!-- Add extension point contribution for "task execution" dialogs -->
+  	
+	<extension
+  		point="tr.org.liderahenk.liderconsole.core.taskmenu">
+  		<taskItem label="%command.monitoring.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini ve izlenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
   	</extension>
   	
 	<!-- Add extension point contribution for i18n messages -->

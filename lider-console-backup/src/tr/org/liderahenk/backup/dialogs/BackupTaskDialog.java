@@ -53,7 +53,6 @@ public class BackupTaskDialog extends DefaultTaskDialog {
 
 	@Override
 	public String getCommandId() {
-		// command id which is used to match tasks with ICommand class in the corresponding Lider plugin
 		return "BACKUP_TASK";
 	}
 
