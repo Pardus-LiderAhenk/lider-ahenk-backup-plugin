@@ -14,11 +14,23 @@
   <url>http://www.liderahenk.org</url>
   <packaging>bundle</packaging>
   
+  	<properties>
+		<!-- needed for checkstyle/findbugs -->
+		<main.basedir>${project.basedir}/..</main.basedir>
+	</properties>
   
   <dependencies>
     <dependency>
 			<groupId>tr.org.liderahenk</groupId>
 			<artifactId>lider-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.aries.blueprint</groupId>

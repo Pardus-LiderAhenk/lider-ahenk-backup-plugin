@@ -31,6 +31,10 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.aries.blueprint</groupId>
 			<artifactId>org.apache.aries.blueprint</artifactId>
 		</dependency>
@@ -42,6 +46,7 @@
 			<groupId>tr.org.liderahenk</groupId>
 			<artifactId>lider-backup-db</artifactId>
 			<version>1.0.0</version>
+			<type>bundle</type>
 		</dependency>
 	</dependencies>
 
@@ -98,10 +103,9 @@
 						<_removeheaders>Import-Service,Export-Service</_removeheaders>
 						<Bundle-SymbolicName>lider-backup</Bundle-SymbolicName>
 						<Bundle-Version>1.0.0</Bundle-Version>
-						<!-- There is a bug that imports packages reside in the bundle. Here we prevent this: -->
-						<Import-Package>!tr.org.liderahenk.backup.*, *</Import-Package>
 						<!-- If the plugin also have a *-db bundle, then use this line instead: -->
-						<Import-Package>tr.org.liderahenk.backup.entities.*, !tr.org.liderahenk.backup.*, *</Import-Package>
+						<Import-Package>tr.org.liderahenk.backup.entities.*,
+							!tr.org.liderahenk.backup.*, *</Import-Package>
 					</instructions>
 				</configuration>
 			</plugin>

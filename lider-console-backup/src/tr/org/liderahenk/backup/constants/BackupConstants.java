@@ -6,6 +6,8 @@ public class BackupConstants {
 	public static final String PLUGIN_VERSION = "1.0.0";
 
 	public static final String DEFAULT_PORT = "22";
+	public static final int DEFAULT_PORT_INT = 22;
+	public static final String DEFAULT_DEST_PATH = "/ydk/{IP_ADDRESS}";
 
 	public static final class PARAMETERS {
 		public static final String USERNAME = "username";

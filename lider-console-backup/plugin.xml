@@ -28,6 +28,11 @@
             id="tr.org.liderahenk.liderconsole.commands.BackupTaskList"            
             name="%editor.backup">
       </command>
+      <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.commands.BackupServerConf"            
+            name="%command.backup.server.conf">
+      </command>
    </extension>
    
    <extension
@@ -55,6 +60,12 @@
        <handler
             class="tr.org.liderahenk.backup.handlers.BackupTaskListHandler"
             commandId="tr.org.liderahenk.liderconsole.commands.BackupTaskList">
+      </handler>
+      	
+      	<!-- Task handler -->
+       <handler
+            class="tr.org.liderahenk.backup.handlers.BackupServerConfHandler"
+            commandId="tr.org.liderahenk.liderconsole.commands.BackupServerConf">
       </handler>
       
   </extension>
@@ -150,6 +161,12 @@
 	          id="tr.org.liderahenk.liderconsole.commands.BackupTaskList"
 	          icon="icons/16/backup.png"
 	          tooltip="%editor.backup">
+        </command>
+  		<command
+           	  commandId="tr.org.liderahenk.liderconsole.commands.BackupServerConf"
+	          id="tr.org.liderahenk.liderconsole.commands.BackupServerConf"
+	          icon="icons/16/backup.png"
+	          tooltip="%command.backup.server.conf">
         </command>
     </menuContribution>
 		
