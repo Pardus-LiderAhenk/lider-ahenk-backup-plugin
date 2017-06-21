@@ -9,12 +9,17 @@ public class MonitoringTableItem implements Serializable {
 	private String dn;
 	private String percentage;
 	private String estimation;
+	private boolean ongoing;
+	private boolean successful;
 
 	public MonitoringTableItem(String dn, String percentage, String estimation) {
 		super();
 		this.dn = dn;
 		this.percentage = percentage;
 		this.estimation = estimation;
+		// These are used to control table info labels
+		this.ongoing = false;
+		this.successful = false;
 	}
 
 	public String getDn() {
@@ -39,6 +44,22 @@ public class MonitoringTableItem implements Serializable {
 
 	public void setEstimation(String estimation) {
 		this.estimation = estimation;
+	}
+
+	public synchronized boolean isOngoing() {
+		return ongoing;
+	}
+
+	public synchronized void setOngoing(boolean ongoing) {
+		this.ongoing = ongoing;
+	}
+
+	public synchronized boolean isSuccessful() {
+		return successful;
+	}
+
+	public synchronized void setSuccessful(boolean successful) {
+		this.successful = successful;
 	}
 
 }

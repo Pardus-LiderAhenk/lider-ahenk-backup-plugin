@@ -19,7 +19,7 @@ public class BackupWithMonitoringTaskHandler extends MultipleSelectionHandler {
 		BackupWithMonitoringTaskDialog dialog = new BackupWithMonitoringTaskDialog(
 				Display.getDefault().getActiveShell(), dnSet);
 		dialog.create();
-		dialog.open();
+		dialog.openWithEventBroker();
 	}
 
 }
