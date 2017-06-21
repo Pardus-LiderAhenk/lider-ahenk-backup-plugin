@@ -1,18 +1,19 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import re
 import subprocess
 import sys
 import threading
-import json
+
+from base.model.enum.content_type import ContentType
+from base.model.enum.message_code import MessageCode
+from base.model.enum.message_type import MessageType
 from base.model.response import Response
 from base.plugin.abstract_plugin import AbstractPlugin
 from base.scope import Scope
-from base.model.enum.message_code import MessageCode
-from base.model.enum.message_type import MessageType
-from base.model.enum.content_type import ContentType
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
@@ -59,38 +60,34 @@ class BackupParser(AbstractPlugin):
                 self.update_last_status()
 
     def parse_sync(self, line):
-        # self.logger.info('line parse ediliyor')
-        if b'' == line:
+        self.logger.debug('Rsync command results are parsing')
+
+        line_as_arr = None
+        try:
+            line_as_arr = line.split()
+        except:
             pass
-        else:
-            line_as_arr = None
-            try:
-                line_as_arr = line.split()
-            except:
-                pass
-            if len(line_as_arr) > 1 and b'%' in line:
-                self.transferred_file_size = str(line_as_arr[0].decode('utf-8'))
-                self.percentage = str(line_as_arr[1].decode('utf-8')).replace('%', '')
-                self.estimated_time = str(line_as_arr[3].decode('utf-8'))
-                # self.logger.info(str(self.percentage))
+        if len(line_as_arr) > 1 and b'%' in line:
+            self.transferred_file_size = str(line_as_arr[0].decode('utf-8'))
+            self.percentage = str(line_as_arr[1].decode('utf-8')).replace('%', '')
+            self.estimated_time = str(line_as_arr[3].decode('utf-8'))
 
-                if float(self.total_transferred_file_size) == 0:
-                    print('already sync')
-                else:
-                    transfer_range = float(
-                        "{0:.2f}".format(float(self.total_transferred_file_size) / float(self.total_file_size)))
-                    real_percentage = int(int(self.percentage) / transfer_range)
+            if float(self.total_transferred_file_size) == 0:
+                return -1
+            else:
+                transfer_range = float(
+                    '{0:.2f}'.format(float(self.total_transferred_file_size) / float(self.total_file_size)))
+                real_percentage = int(int(self.percentage) / transfer_range)
 
-                    if real_percentage == 100:
-                        self.estimated_time = '0:00:00'
+                if real_percentage == 100:
+                    self.estimated_time = '0:00:00'
 
-                    self.send_processing_message(str(real_percentage), str(self.estimated_time))
-                    if real_percentage == 100:
-                        return -1
+                self.send_processing_message(str(real_percentage), str(self.estimated_time))
+                if real_percentage == 100:
+                    return -1
         return 0
 
     def send_processing_message(self, percentage, time):
-        print(percentage)
         try:
             data = {
                 'percentage': str(percentage), 'estimation': str(time)
@@ -104,7 +101,7 @@ class BackupParser(AbstractPlugin):
             message = self.messaging.task_status_msg(response)
             Scope.get_instance().get_messenger().send_direct_message(message)
         except Exception as e:
-            print('?' + str(e))
+            self.logger.error('A problem occurred while sending message. Error Message: {0}'.format(str(e)))
 
     def update_last_status(self):
         if not self.dry_run_status:
@@ -124,25 +121,8 @@ class BackupRsync(AbstractPlugin):
     def prepare_command(self):
         destination_path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data[
             'destPath']
-        # backup_directory = self.backup_data['directory']
         path = self.backup_data['sourcePath'] + ' ' + destination_path
         options = ' -a --no-i-r --info=progress2 --stats --no-h '
-        # if 'recursive' in backup_directory:
-        #     options = options + ' -r '
-        # if 'preserveGroup' in backup_directory:
-        #     options = options + ' -g '
-        # if 'preserveOwner' in backup_directory:
-        #     options = options + ' -o '
-        # if 'preservePermissions' in backup_directory:
-        #     options = options + ' -p '
-        # # if backup_directory['archive']:
-        # #    options = options + ' -a '
-        # if 'compress' in backup_directory:
-        #     options = options + ' -z '
-        # if 'existingOnly' in backup_directory:
-        #     options = options + ' --existing '
-        # if 'excludePattern' in backup_directory:
-        #     options = options + ' --exclude "' + backup_directory['excludePattern'] + '" '
         backup_command = 'rsync ' + options + ' ' + path
         self.logger.info(str(backup_command))
         return backup_command
@@ -157,9 +137,8 @@ class BackupRsync(AbstractPlugin):
         return dry_run_backup_command
 
     def execute_command(self, cmd):
-        self.logger.info('backup command execute ediliyor')
+        self.logger.debug('Backup command is executing. Command : {0}'.format(cmd))
         try:
-            print('\nExecute command\n' + cmd)
             self.parser.resuming = True
             command_process = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                                stderr=subprocess.PIPE)
@@ -170,12 +149,10 @@ class BackupRsync(AbstractPlugin):
                     self.parser.resuming = False
                     self.logger.info('#processed')
                 if output:
-                    if self.parser.parse_sync(output)==-1:
+                    if self.parser.parse_sync(output) == -1:
                         break
         except Exception as e:
-            print(str(e))
-            Scope.get_instance().get_logger().info(e)
-            return str(e)
+            self.logger.error('A problem occurred while executing rsync command. Error Message: {0}'.format(str(e)))
 
     def execute_dry_run(self, cmd):
 
@@ -196,15 +173,23 @@ class BackupRsync(AbstractPlugin):
     def append_command_execution_type(self, cmd):
         return 'sshpass -p ' + self.backup_data['password'] + ' ' + cmd + ' | stdbuf -oL tr "\\r" "\\n"'
 
+    def destination_confirm(self):
+        self.execute_command(
+            'sshpass -p {0} ssh {1}@{2} mkdir -p {3}'.format(self.backup_data['password'], self.backup_data['username'],
+                                                             self.backup_data['destHost'],
+                                                             os.path.dirname(self.backup_data['destPath'])))
+
     def backup(self):
         # Change status of parser and run dry run command for backup informations
         # self.parser.dry_run_status = True
+
+        self.destination_confirm()
         dry_run_cmd = self.append_command_execution_type(self.dry_run())
-        print('\ndry run command\n' + dry_run_cmd)
+        self.logger.debug('Dry run command:{0}'.format(dry_run_cmd))
         self.execute_dry_run(dry_run_cmd)
         self.parser.dry_run_status = False
         #
-        self.logger.info('Dry run ok.')
+        self.logger.info('Dry run executed.')
         self.prepare_backup()
 
         self.logger.info('Backup completed')
