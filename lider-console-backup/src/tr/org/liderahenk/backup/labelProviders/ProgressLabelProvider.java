@@ -36,7 +36,7 @@ public class ProgressLabelProvider extends OwnerDrawLabelProvider {
 				Color foreground = event.gc.getForeground();
 				Color background = event.gc.getBackground();
 				event.gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN));
-				event.gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN));
+				event.gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 				Rectangle bounds = ((TableItem) event.item).getBounds(event.index);
 				int width = (bounds.width - 1) * Integer.parseInt(percentage) / 100;
 				event.gc.fillGradientRectangle(event.x, event.y, width, event.height, true);
