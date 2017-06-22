@@ -195,7 +195,7 @@ class BackupRsync(AbstractPlugin):
         self.logger.info('Backup completed')
 
         self.context.create_response(code=MessageCode.TASK_PROCESSED.value,
-                                     message='Yedekleme bitti.',
+                                     message='Dosya transferi bitti.',
                                      content_type=self.get_content_type().APPLICATION_JSON.value)
 
     def prepare_backup(self):
