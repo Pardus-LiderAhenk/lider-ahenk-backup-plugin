@@ -31,7 +31,7 @@ public class GetBackupServerConfigCommand implements ICommand {
 		List<BackupServerConfig> config = dbService.findAll(BackupServerConfig.class);
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		if (config != null && !config.isEmpty()) {
-			logger.info("Found backup server config. Config: {}.", config != null ? config.get(0) : "-");
+			logger.info("Found backup server config. Config: {}.", config.get(0));
 			resultMap.put("BACKUP_SERVER_CONFIG", new ObjectMapper().writeValueAsString(config.get(0)));
 		}
 		return resultFactory.create(CommandResultStatus.OK, new ArrayList<String>(), this, resultMap);

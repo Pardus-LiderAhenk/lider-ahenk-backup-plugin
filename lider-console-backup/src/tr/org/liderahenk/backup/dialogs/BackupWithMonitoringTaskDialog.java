@@ -169,7 +169,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		lblMonitoring.setText(Messages.getString("BACKUP_MONITORING"));
 		createTableInfoArea(parent);
 		createTableFilterArea(parent);
-		createTable(parent);
+		createTableArea(parent);
 	}
 
 	private void createTableInfoArea(Composite parent) {
@@ -236,7 +236,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		}
 	}
 
-	private void createTable(Composite parent) {
+	private void createTableArea(Composite parent) {
 		GridData dataSearchGrid = new GridData();
 		dataSearchGrid.grabExcessHorizontalSpace = true;
 		dataSearchGrid.horizontalAlignment = GridData.FILL;
@@ -257,6 +257,8 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 
 		List<MonitoringTableItem> items = createDefaultTableItems();
 		tableViewer.setInput(items);
+		tableFilter = new TableFilter();
+		tableViewer.addFilter(tableFilter);
 		tableViewer.refresh();
 
 		GridData gridData = new GridData();
