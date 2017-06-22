@@ -90,8 +90,7 @@ public class SSHManager {
 				session.setPassword(password);
 			}
 			session.setConfig(config);
-			int timeout = 60000;
-			session.connect(timeout);
+			session.connect();
 		} catch (JSchException e) {
 			logger.error(e.getMessage(), e);
 			throw new SSHConnectionException(e.getMessage());
@@ -135,7 +134,7 @@ public class SSHManager {
 				byteArray = outputStreamProvider.getStreamAsByteArray();
 			}
 
-			channel.connect(50000);
+			channel.connect();
 
 			// Pass provided byte array as command argument
 			if (outputStream != null && byteArray != null) {
