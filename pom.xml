@@ -32,6 +32,7 @@
 		<geronimo.jpa.version>1.1</geronimo.jpa.version>
 		<maven.resources.plugin.version>2.7</maven.resources.plugin.version>
 		<build.helper.maven.plugin.version>1.10</build.helper.maven.plugin.version>
+		<jsch.version>0.1.54</jsch.version>
 
 		<main.basedir>${project.basedir}/..</main.basedir>
 		<mars.repo.url>http://download.eclipse.org/releases/mars</mars.repo.url>
@@ -190,6 +191,11 @@
 				<groupId>org.apache.geronimo.specs</groupId>
 				<artifactId>geronimo-jpa_2.0_spec</artifactId>
 				<version>${geronimo.jpa.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.jcraft</groupId>
+				<artifactId>jsch</artifactId>
+				<version>${jsch.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

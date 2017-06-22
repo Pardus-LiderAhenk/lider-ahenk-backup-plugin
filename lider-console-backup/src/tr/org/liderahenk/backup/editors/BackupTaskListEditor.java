@@ -23,6 +23,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
@@ -33,11 +34,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.backup.constants.BackupConstants;
+import tr.org.liderahenk.backup.dialogs.BackupWithMonitoringTaskDialog;
 import tr.org.liderahenk.backup.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
-import tr.org.liderahenk.liderconsole.core.model.Agent;
+import tr.org.liderahenk.liderconsole.core.model.Command;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
@@ -50,16 +52,16 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class BackupTaskListEditor extends EditorPart {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(BackupTaskListEditor.class);
-	
+
 	private TableViewer tableViewer;
 	private TableFilter tableFilter;
 	private Text txtSearch;
 	private Composite buttonComposite;
 	private Button btnViewDetail;
-	private Button btnRefreshAgent;
-	
+	private Button btnRefreshExecutedTask;
+
 	private ExecutedTask selectedTask;
 
 	@Override
@@ -74,7 +76,7 @@ public class BackupTaskListEditor extends EditorPart {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
-		setPartName(((DefaultEditorInput) input).getLabel());		
+		setPartName(((DefaultEditorInput) input).getLabel());
 	}
 
 	@Override
@@ -92,9 +94,9 @@ public class BackupTaskListEditor extends EditorPart {
 		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		parent.setLayout(new GridLayout(1, false));
 		createButtonsArea(parent);
-		createTableArea(parent);		
+		createTableArea(parent);
 	}
-	
+
 	/**
 	 * Create main widget of the editor - table viewer.
 	 * 
@@ -138,9 +140,15 @@ public class BackupTaskListEditor extends EditorPart {
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				// TODO
-//				AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), getSelectedTask());
-//				dialog.open();
+				try {
+					Command command = TaskRestUtils.getCommand(selectedTask.getId());
+					BackupWithMonitoringTaskDialog dialog = new BackupWithMonitoringTaskDialog(parent.getShell(),
+							command);
+					dialog.create();
+					dialog.open();
+				} catch (Exception e1) {
+					logger.error(e1.getMessage(), e1);
+				}
 			}
 		});
 
@@ -148,68 +156,52 @@ public class BackupTaskListEditor extends EditorPart {
 		tableViewer.addFilter(tableFilter);
 		tableViewer.refresh();
 	}
-	
+
 	private void createTableColumns() {
 
-		// DN
-		TableViewerColumn dnColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("DN"),
-				200);
-		dnColumn.getColumn().setAlignment(SWT.LEFT);
-		dnColumn.setLabelProvider(new ColumnLabelProvider() {
+		TableViewerColumn taskColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("TASK"), 200);
+		taskColumn.getColumn().setAlignment(SWT.LEFT);
+		taskColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getDn();
+				if (element instanceof ExecutedTask) {
+					return Messages.getString("BACKUP_LABEL") + " "
+							+ SWTResourceManager.formatDate(((ExecutedTask) element).getCreateDate());
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
 
-		// JID
-		TableViewerColumn jidColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("JID"),
-				200);
+		TableViewerColumn jidColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("TASK_TYPE"), 200);
 		jidColumn.getColumn().setAlignment(SWT.LEFT);
 		jidColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getJid();
+				if (element instanceof ExecutedTask) {
+					return ((ExecutedTask) element).getScheduled() ? Messages.getString("SCHEDULED")
+							: Messages.getString("ONE_TIME");
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
 
-		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("CREATE_DATE"), 100);
+				Messages.getString("LAST_EXECUTION_DATE"), 100);
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getCreateDate() != null
-							? SWTResourceManager.formatDate(((Agent) element).getCreateDate())
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-
-		// Modify date
-		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("MODIFY_DATE"), 100);
-		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getModifyDate() != null
-							? SWTResourceManager.formatDate(((Agent) element).getModifyDate())
+				if (element instanceof ExecutedTask) {
+					return ((ExecutedTask) element).getLastExecutionDate() != null
+							? SWTResourceManager.formatDate(((ExecutedTask) element).getLastExecutionDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
 	}
-	
+
 	/**
 	 * Create table filter area
 	 * 
@@ -238,7 +230,7 @@ public class BackupTaskListEditor extends EditorPart {
 			}
 		});
 	}
-	
+
 	/**
 	 * Create add, edit, delete button for the table.
 	 * 
@@ -262,10 +254,15 @@ public class BackupTaskListEditor extends EditorPart {
 					Notifier.warning(null, Messages.getString("PLEASE_SELECT_RECORD"));
 					return;
 				}
-				// TODO
-//				AgentDetailDialog dialog = new AgentDetailDialog(Display.getDefault().getActiveShell(), getSelectedTask());
-//				dialog.create();
-//				dialog.open();
+				try {
+					Command command = TaskRestUtils.getCommand(selectedTask.getId());
+					BackupWithMonitoringTaskDialog dialog = new BackupWithMonitoringTaskDialog(
+							Display.getDefault().getActiveShell(), command);
+					dialog.create();
+					dialog.open();
+				} catch (Exception e1) {
+					logger.error(e1.getMessage(), e1);
+				}
 			}
 
 			@Override
@@ -273,12 +270,12 @@ public class BackupTaskListEditor extends EditorPart {
 			}
 		});
 
-		btnRefreshAgent = new Button(buttonComposite, SWT.NONE);
-		btnRefreshAgent.setText(Messages.getString("REFRESH"));
-		btnRefreshAgent.setImage(
+		btnRefreshExecutedTask = new Button(buttonComposite, SWT.NONE);
+		btnRefreshExecutedTask.setText(Messages.getString("REFRESH"));
+		btnRefreshExecutedTask.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
-		btnRefreshAgent.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		btnRefreshAgent.addSelectionListener(new SelectionListener() {
+		btnRefreshExecutedTask.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnRefreshExecutedTask.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				refresh();
@@ -289,7 +286,7 @@ public class BackupTaskListEditor extends EditorPart {
 			}
 		});
 	}
-	
+
 	public class TableFilter extends ViewerFilter {
 
 		private String searchString;
@@ -308,7 +305,7 @@ public class BackupTaskListEditor extends EditorPart {
 			return task.getCreateDate().toString().matches(searchString);
 		}
 	}
-	
+
 	/**
 	 * Get agents and populate the table with them.
 	 */
@@ -324,7 +321,7 @@ public class BackupTaskListEditor extends EditorPart {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 	}
-	
+
 	/**
 	 * Re-populate table with policies.
 	 * 
@@ -337,7 +334,7 @@ public class BackupTaskListEditor extends EditorPart {
 	@Override
 	public void setFocus() {
 	}
-	
+
 	public ExecutedTask getSelectedTask() {
 		return selectedTask;
 	}

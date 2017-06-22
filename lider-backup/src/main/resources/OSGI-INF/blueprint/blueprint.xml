@@ -26,14 +26,27 @@
 		<property name="usesFileTransfer" value="${plugin.uses.file.transfer}" />
 		<property name="xbased" value="${plugin.x.based}" />
 	</bean>
-	
+
 	<service ref="backupCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
-	<bean id="backupCommand"
-		class="tr.org.liderahenk.backup.commands.BackupCommand">
+	<bean id="backupCommand" class="tr.org.liderahenk.backup.commands.BackupCommand">
 		<property name="pluginInfo" ref="pluginInfoImpl" />
 		<property name="resultFactory" ref="resultFactory" />
 	</bean>
-	
+
+	<service ref="getBackupServerConfigCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
+	<bean id="getBackupServerConfigCommand" class="tr.org.liderahenk.backup.commands.GetBackupServerConfigCommand">
+		<property name="pluginInfo" ref="pluginInfoImpl" />
+		<property name="resultFactory" ref="resultFactory" />
+		<property name="dbService" ref="dbService" />
+	</bean>
+
+	<service ref="saveBackupServerConfigCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
+	<bean id="saveBackupServerConfigCommand" class="tr.org.liderahenk.backup.commands.SaveBackupServerConfigCommand">
+		<property name="pluginInfo" ref="pluginInfoImpl" />
+		<property name="resultFactory" ref="resultFactory" />
+		<property name="dbService" ref="dbService" />
+	</bean>
+
 	<service ref="backupWithMonitoringCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
 	<bean id="backupWithMonitoringCommand"
 		class="tr.org.liderahenk.backup.commands.BackupWithMonitoringCommand">
@@ -43,4 +56,6 @@
 
 	<reference id="resultFactory"
 		interface="tr.org.liderahenk.lider.core.api.service.ICommandResultFactory" />
+	<reference id="dbService"
+		interface="tr.org.liderahenk.lider.core.api.persistence.IPluginDbService" />
 </blueprint>

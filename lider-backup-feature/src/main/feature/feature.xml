@@ -31,11 +31,13 @@
     <feature name="lider-backup-bundles" version="${project.version}">
     	<configfile finalname="/etc/tr.org.liderahenk.backup.cfg">mvn:${groupId}/lider-backup/${project.version}/cfg</configfile>
 		<bundle>mvn:tr.org.liderahenk/lider-backup/${project.version}</bundle>
+		<bundle>mvn:tr.org.liderahenk/lider-backup-db/${project.version}</bundle>
     </feature>
 
     <feature name="lider-backup-dependencies" version="${project.version}">
 		<bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.13</bundle>
 		<bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13</bundle>
+		<bundle>wrap:mvn:com.jcraft/jsch/0.1.54</bundle>
     </feature>
 
 </features>

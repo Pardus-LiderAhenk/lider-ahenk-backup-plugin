@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,9 +29,12 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -48,12 +52,15 @@ import tr.org.liderahenk.backup.comparators.ResultComparator;
 import tr.org.liderahenk.backup.constants.BackupConstants;
 import tr.org.liderahenk.backup.i18n.Messages;
 import tr.org.liderahenk.backup.labelProviders.ProgressLabelProvider;
+import tr.org.liderahenk.backup.model.BackupServerConf;
 import tr.org.liderahenk.backup.model.MonitoringTableItem;
+import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.model.Command;
 import tr.org.liderahenk.liderconsole.core.model.CommandExecution;
 import tr.org.liderahenk.liderconsole.core.model.CommandExecutionResult;
+import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
@@ -64,16 +71,12 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 
 	private static final Logger logger = LoggerFactory.getLogger(BackupWithMonitoringTaskDialog.class);
 
-	private Text txtUsername;
-	private Text txtPassword;
 	private Text txtSourcePath;
-	private Text txtDestHost;
-	private Text txtDestPort;
-	private Text txtDestPath;
 	private Composite inputComposite;
 	private TableViewer tableViewer;
 	private TableFilter tableFilter;
 	private Text txtSearch;
+	private Button btnUpdateBackupServerConf;
 
 	private Label lblAgentCount;
 	private Label lblOngoingAgentCount;
@@ -84,12 +87,21 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	Integer SUCCESSFUL_PERCENTAGE = new Integer(100);
 	Timer timer = null;
+	private boolean monitoringOnly = false;
+	private BackupServerConf selectedConfig = null;
 
 	public BackupWithMonitoringTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet);
 		subscribeEventHandler(getPluginName().toUpperCase(Locale.ENGLISH) + "_TASK_NOTIFICATION", eventHandler);
 	}
 
+	public BackupWithMonitoringTaskDialog(Shell parentShell, Command command) {
+		super(parentShell, new HashSet<String>(command.getDnList()), true);
+		timer = new Timer();
+		timer.schedule(new CheckResults(command.getTask().getId()), 0, 500);
+		monitoringOnly = true;
+	}
+	
 	@Override
 	public String createTitle() {
 		return Messages.getString("BACKUP_WITH_MONITORING");
@@ -105,51 +117,50 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	}
 
 	private void createBackupInputArea(final Composite parent) {
+		
+		try {
+			selectedConfig = getBackupServerConfig();
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		Label lblInput = new Label(parent, SWT.NONE);
 		lblInput.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
 		lblInput.setText(Messages.getString("BACKUP_INPUTS"));
 
 		inputComposite = new Composite(parent, SWT.BORDER);
-		inputComposite.setLayout(new GridLayout(4, true));
+		inputComposite.setLayout(new GridLayout(3, true));
 		inputComposite.setData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-		Label labelUN = new Label(inputComposite, SWT.NONE);
-		labelUN.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		labelUN.setText(Messages.getString("USERNAME"));
-		txtUsername = new Text(inputComposite, SWT.BORDER);
-		txtUsername.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		Label labelPassword = new Label(inputComposite, SWT.NONE);
-		labelPassword.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		labelPassword.setText(Messages.getString("PASSWORD"));
-		txtPassword = new Text(inputComposite, SWT.PASSWORD | SWT.BORDER);
-		txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
-
-		Label labelHost = new Label(inputComposite, SWT.NONE);
-		labelHost.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		labelHost.setText(Messages.getString("DEST_HOST"));
-		txtDestHost = new Text(inputComposite, SWT.BORDER);
-		txtDestHost.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		Label labelPort = new Label(inputComposite, SWT.NONE);
-		labelPort.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		labelPort.setText(Messages.getString("DEST_PORT"));
-		txtDestPort = new Text(inputComposite, SWT.BORDER);
-		txtDestPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		txtDestPort.setText(BackupConstants.DEFAULT_PORT);
 
 		Label labelSrcDir = new Label(inputComposite, SWT.NONE);
 		labelSrcDir.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		labelSrcDir.setText(Messages.getString("SOURCE_DIR"));
+		
 		txtSourcePath = new Text(inputComposite, SWT.BORDER);
 		txtSourcePath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		btnUpdateBackupServerConf = new Button(inputComposite, SWT.NONE);
+		btnUpdateBackupServerConf.setText(Messages.getString("BACKUP_SERVER_CONF_BUTTON"));
+		btnUpdateBackupServerConf.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnUpdateBackupServerConf.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/services.png"));
+		btnUpdateBackupServerConf.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				BackupServerConfDialog dialog = new BackupServerConfDialog(Display.getDefault().getActiveShell());
+				dialog.create();
+				dialog.open();
+				selectedConfig = dialog.getSelectedConfig();
+			}
 
-		Label labelDir = new Label(inputComposite, SWT.NONE);
-		labelDir.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		labelDir.setText(Messages.getString("DEST_DIR"));
-		txtDestPath = new Text(inputComposite, SWT.BORDER);
-		txtDestPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 	}
 
 	private void createMonitoringTableArea(Composite parent) {
@@ -306,17 +317,20 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 
 	@Override
 	public void validateBeforeExecution() throws ValidationException {
+		if (selectedConfig == null) {
+			throw new ValidationException(Messages.getString("BACKUP_SERVER_CONF_NOT_FOUND"));
+		}
 	}
 
 	@Override
 	public Map<String, Object> getParameterMap() {
 		Map<String, Object> profileData = new HashMap<String, Object>();
-		profileData.put(BackupConstants.PARAMETERS.USERNAME, txtUsername.getText());
-		profileData.put(BackupConstants.PARAMETERS.PASSWORD, txtPassword.getText());
-		profileData.put(BackupConstants.PARAMETERS.DEST_HOST, txtDestHost.getText());
-		profileData.put(BackupConstants.PARAMETERS.DEST_PORT, txtDestPort.getText());
+		profileData.put(BackupConstants.PARAMETERS.USERNAME, selectedConfig.getUsername());
+		profileData.put(BackupConstants.PARAMETERS.PASSWORD, selectedConfig.getPassword());
+		profileData.put(BackupConstants.PARAMETERS.DEST_HOST, selectedConfig.getDestHost());
+		profileData.put(BackupConstants.PARAMETERS.DEST_PORT, selectedConfig.getDestPort());
 		profileData.put(BackupConstants.PARAMETERS.SOURCE_PATH, txtSourcePath.getText());
-		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, txtDestPath.getText());
+		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, selectedConfig.getDestPath());
 		return profileData;
 	}
 
@@ -349,6 +363,8 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							@Override
 							public void run() {
 								Long taskId = task.getCommand().getTask().getId();
+								// Dispose previous timer if exists
+								onClose();
 								timer = new Timer();
 								timer.schedule(new CheckResults(taskId), 0, 500);
 							}
@@ -392,7 +408,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 						String percentage = "0";
 						if (results != null && !results.isEmpty()) {
 							// Find latest result
-							results.sort(new ResultComparator());
+							results.sort(new ResultComparator(new ObjectMapper()));
 							CommandExecutionResult result = results.get(0);
 							
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED) {
@@ -434,11 +450,12 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 					}
 					final int fSuccessful = successful;
 					final int fOngoing = ongoing;
-					final String fMaxEstimation = maxEstimation;
+					final String fMaxEstimation = maxEstimation == null ? "-" : maxEstimation;
 
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
+							if (lblAgentCount.isDisposed()) return;
 							// Update table
 							tableViewer.setInput(items);
 							tableViewer.refresh();
@@ -468,6 +485,25 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 			timer.cancel();
 			timer.purge();
 		}
+	}
+	
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+		if (monitoringOnly) return;
+		super.createButtonsForButtonBar(parent);
+	}
+	
+	private BackupServerConf getBackupServerConfig() throws JsonParseException, JsonMappingException, IOException {
+		IResponse response = null;
+		try {
+			response = TaskRestUtils.execute(BackupConstants.PLUGIN_NAME, BackupConstants.PLUGIN_VERSION,
+					"GET_BACKUP_SERVER_CONFIG", false);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+		return (BackupServerConf) ((response != null && response.getResultMap() != null
+				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null) ? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(), BackupServerConf.class) : null);
 	}
 
 }
