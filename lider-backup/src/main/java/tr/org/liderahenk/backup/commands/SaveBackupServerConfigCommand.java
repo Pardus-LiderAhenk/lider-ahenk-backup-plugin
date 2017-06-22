@@ -40,7 +40,7 @@ public class SaveBackupServerConfigCommand implements ICommand {
 		}
 		logger.info("Saved backup server config with ID: {}", config.getId());
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		resultMap.put("BACKUP_SERVER_CONFIG", config);
+		resultMap.put("BACKUP_SERVER_CONFIG", new ObjectMapper().writeValueAsString(config));
 		return resultFactory.create(CommandResultStatus.OK, new ArrayList<String>(), this, resultMap);
 	}
 

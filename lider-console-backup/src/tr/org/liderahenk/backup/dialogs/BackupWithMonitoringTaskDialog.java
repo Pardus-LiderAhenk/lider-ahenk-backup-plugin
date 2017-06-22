@@ -119,7 +119,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	private void createBackupInputArea(final Composite parent) {
 		
 		try {
-			selectedConfig = getSelectedConfig();
+			selectedConfig = getBackupServerConfig();
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -144,17 +144,17 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		txtSourcePath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
 		btnUpdateBackupServerConf = new Button(inputComposite, SWT.NONE);
-		btnUpdateBackupServerConf.setText(Messages.getString("ADD"));
+		btnUpdateBackupServerConf.setText(Messages.getString("BACKUP_SERVER_CONF_BUTTON"));
 		btnUpdateBackupServerConf.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 		btnUpdateBackupServerConf.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/services.png"));
 		btnUpdateBackupServerConf.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-//				BackupParametersListItemDialog dialog = new BackupParametersListItemDialog(
-//						Display.getDefault().getActiveShell(), tableViewer, btnCheckLVM.getSelection());
-//				dialog.create();
-//				dialog.open();
+				BackupServerConfDialog dialog = new BackupServerConfDialog(Display.getDefault().getActiveShell());
+				dialog.create();
+				dialog.open();
+				selectedConfig = dialog.getSelectedConfig();
 			}
 
 			@Override
@@ -363,6 +363,8 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							@Override
 							public void run() {
 								Long taskId = task.getCommand().getTask().getId();
+								// Dispose previous timer if exists
+								onClose();
 								timer = new Timer();
 								timer.schedule(new CheckResults(taskId), 0, 500);
 							}
@@ -406,7 +408,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 						String percentage = "0";
 						if (results != null && !results.isEmpty()) {
 							// Find latest result
-							results.sort(new ResultComparator());
+							results.sort(new ResultComparator(new ObjectMapper()));
 							CommandExecutionResult result = results.get(0);
 							
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED) {
@@ -448,7 +450,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 					}
 					final int fSuccessful = successful;
 					final int fOngoing = ongoing;
-					final String fMaxEstimation = maxEstimation;
+					final String fMaxEstimation = maxEstimation == null ? "-" : maxEstimation;
 
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
@@ -491,7 +493,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		super.createButtonsForButtonBar(parent);
 	}
 	
-	private BackupServerConf getSelectedConfig() throws JsonParseException, JsonMappingException, IOException {
+	private BackupServerConf getBackupServerConfig() throws JsonParseException, JsonMappingException, IOException {
 		IResponse response = null;
 		try {
 			response = TaskRestUtils.execute(BackupConstants.PLUGIN_NAME, BackupConstants.PLUGIN_VERSION,

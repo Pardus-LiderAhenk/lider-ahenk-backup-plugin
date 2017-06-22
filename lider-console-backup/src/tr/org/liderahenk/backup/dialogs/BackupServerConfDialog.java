@@ -51,7 +51,7 @@ public class BackupServerConfDialog extends DefaultLiderDialog {
 	protected Control createDialogArea(Composite parent) {
 
 		try {
-			selectedConfig = getSelectedConfig();
+			selectedConfig = getBackupServerConfig();
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -167,7 +167,8 @@ public class BackupServerConfDialog extends DefaultLiderDialog {
 		logger.debug("Backup server config request: {}", task);
 
 		try {
-			TaskRestUtils.execute(task);
+			IResponse response = TaskRestUtils.execute(task);
+			selectedConfig = new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(), BackupServerConf.class);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
@@ -181,7 +182,7 @@ public class BackupServerConfDialog extends DefaultLiderDialog {
 		return new Point(1200, 230);
 	}
 
-	private BackupServerConf getSelectedConfig() throws JsonParseException, JsonMappingException, IOException {
+	private BackupServerConf getBackupServerConfig() throws JsonParseException, JsonMappingException, IOException {
 		IResponse response = null;
 		try {
 			response = TaskRestUtils.execute(BackupConstants.PLUGIN_NAME, BackupConstants.PLUGIN_VERSION,
@@ -191,7 +192,14 @@ public class BackupServerConfDialog extends DefaultLiderDialog {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 		return (BackupServerConf) ((response != null && response.getResultMap() != null
-				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null) ? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(), BackupServerConf.class) : null);
+				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null)
+						? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(),
+								BackupServerConf.class)
+						: null);
+	}
+
+	public BackupServerConf getSelectedConfig() {
+		return selectedConfig;
 	}
 
 }
