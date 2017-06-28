@@ -2,6 +2,8 @@ package tr.org.liderahenk.backup.dialogs;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,24 +42,26 @@ import tr.org.liderahenk.backup.model.BackupServerConf;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
+import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 public class RestoreTaskDialog extends DefaultTaskDialog {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(RestoreTaskDialog.class);
-	
+
 	private Button btnBack;
 	private Button btnUpdateBackupServerConf;
 	private TableViewer tableViewer;
 	private TableFilter tableFilter;
 	private Text txtSearch;
-	
+
 	private BackupServerConf selectedConfig = null;
 	private String currentPath = "/"; // Initially, root path
-	
+
 	public RestoreTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet);
 	}
@@ -76,13 +80,13 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	}
 
 	private void createRestoreTableArea(Composite parent) {
-		
+
 		try {
 			selectedConfig = getBackupServerConfig();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		parent.setLayout(new GridLayout(1, false));
 		createTableButtonArea(parent);
@@ -128,18 +132,20 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		gridData.heightHint = 140;
 		gridData.horizontalAlignment = GridData.FILL;
 		tableViewer.getControl().setLayoutData(gridData);
-		
+
 		// Hook up listeners
-//		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-//			@Override
-//			public void selectionChanged(SelectionChangedEvent event) {
-//				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
-//				Object firstElement = selection.getFirstElement();
-//				if (firstElement instanceof String) {
-//					setCurrentPath((String) firstElement);
-//				}
-//			}
-//		});
+		// tableViewer.addSelectionChangedListener(new
+		// ISelectionChangedListener() {
+		// @Override
+		// public void selectionChanged(SelectionChangedEvent event) {
+		// IStructuredSelection selection = (IStructuredSelection)
+		// tableViewer.getSelection();
+		// Object firstElement = selection.getFirstElement();
+		// if (firstElement instanceof String) {
+		// setCurrentPath((String) firstElement);
+		// }
+		// }
+		// });
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
@@ -158,21 +164,22 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 				}
 			}
 		});
-		
+
 		tableFilter = new TableFilter();
 		tableViewer.addFilter(tableFilter);
 		tableViewer.refresh();
 	}
 
 	private void createTableColumns() {
-		TableViewerColumn dirColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("DIRECTORY"), 800);
+		TableViewerColumn dirColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("DIRECTORY"), 800);
 		dirColumn.getColumn().setAlignment(SWT.LEFT);
 		dirColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
 				return (String) element;
 			}
-		});		
+		});
 	}
 
 	private void createTableFilterArea(Composite parent) {
@@ -196,7 +203,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 				tableFilter.setSearchText(txtSearch.getText());
 				tableViewer.refresh();
 			}
-		});		
+		});
 	}
 
 	private void createTableButtonArea(Composite parent) {
@@ -204,7 +211,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		final Composite composite = new Composite(parent, GridData.FILL);
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		composite.setLayout(new GridLayout(2, false));
-		
+
 		btnBack = new Button(composite, SWT.NONE);
 		btnBack.setText(Messages.getString("BACK"));
 		btnBack.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
@@ -288,7 +295,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	public String getPluginVersion() {
 		return BackupConstants.PLUGIN_VERSION;
 	}
-	
+
 	private BackupServerConf getBackupServerConfig() throws Exception {
 		IResponse response = null;
 		try {
@@ -299,22 +306,28 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 		return (BackupServerConf) ((response != null && response.getResultMap() != null
-				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null) ? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(), BackupServerConf.class) : null);
+				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null)
+						? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(),
+								BackupServerConf.class)
+						: null);
 	}
-	
+
 	private String[] getBackupServerDirectories(String path) throws Exception {
 		IResponse response = null;
 		try {
-			response = TaskRestUtils.execute(BackupConstants.PLUGIN_NAME, BackupConstants.PLUGIN_VERSION,
-					"LIST_BACKUP_SERVER_DIR", false);
+			Map<String, Object> parameterMap = new HashMap<String, Object>();
+			parameterMap.put("TARGET_PATH", path != null ? path : "/");
+			TaskRequest task = new TaskRequest(null, DNType.AHENK, BackupConstants.PLUGIN_NAME,
+					BackupConstants.PLUGIN_VERSION, "LIST_BACKUP_SERVER_DIR", parameterMap, null, null, new Date());
+			response = TaskRestUtils.execute(task, false);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 		String result = response.getResultMap().get("CHILD_DIRS").toString();
-		return result.split("\n");
+		return result.split(",");
 	}
-	
+
 	public class TableFilter extends ViewerFilter {
 
 		private String searchString;
@@ -340,5 +353,5 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	public void setCurrentPath(String currentPath) {
 		this.currentPath = currentPath;
 	}
-	
+
 }
