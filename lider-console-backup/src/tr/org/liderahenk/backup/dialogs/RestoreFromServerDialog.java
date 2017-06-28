@@ -1,5 +1,6 @@
 package tr.org.liderahenk.backup.dialogs;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -7,17 +8,25 @@ import java.util.Set;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -28,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.backup.constants.BackupConstants;
 import tr.org.liderahenk.backup.i18n.Messages;
 import tr.org.liderahenk.backup.model.BackupServerConf;
+import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
@@ -40,13 +50,13 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 	private static final Logger logger = LoggerFactory.getLogger(RestoreFromServerDialog.class);
 	
 	private Button btnBack;
-	private Button btnRestore;
 	private Button btnUpdateBackupServerConf;
 	private TableViewer tableViewer;
 	private TableFilter tableFilter;
 	private Text txtSearch;
 	
 	private BackupServerConf selectedConfig = null;
+	private String currentPath = "/"; // Initially, root path
 	
 	public RestoreFromServerDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet);
@@ -73,6 +83,8 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 			e.printStackTrace();
 		}
 		
+		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		parent.setLayout(new GridLayout(1, false));
 		createTableButtonArea(parent);
 		createTableFilterArea(parent);
 		createTableArea(parent);
@@ -115,12 +127,52 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 		gridData.grabExcessVerticalSpace = true;
 		gridData.heightHint = 140;
 		gridData.horizontalAlignment = GridData.FILL;
-		tableViewer.getControl().setLayoutData(gridData);		
+		tableViewer.getControl().setLayoutData(gridData);
+		
+		// Hook up listeners
+//		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+//			@Override
+//			public void selectionChanged(SelectionChangedEvent event) {
+//				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+//				Object firstElement = selection.getFirstElement();
+//				if (firstElement instanceof String) {
+//					setCurrentPath((String) firstElement);
+//				}
+//			}
+//		});
+		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+				Object firstElement = selection.getFirstElement();
+				if (firstElement instanceof String) {
+					setCurrentPath((String) firstElement);
+					List<String> items;
+					try {
+						items = Arrays.asList(getBackupServerDirectories(getCurrentPath()));
+						tableViewer.setInput(items);
+						tableViewer.refresh();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		
+		tableFilter = new TableFilter();
+		tableViewer.addFilter(tableFilter);
+		tableViewer.refresh();
 	}
 
 	private void createTableColumns() {
-		// TODO Auto-generated method stub
-		
+		TableViewerColumn dirColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("DIRECTORY"), 800);
+		dirColumn.getColumn().setAlignment(SWT.LEFT);
+		dirColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return (String) element;
+			}
+		});		
 	}
 
 	private void createTableFilterArea(Composite parent) {
@@ -148,12 +200,72 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 	}
 
 	private void createTableButtonArea(Composite parent) {
-		// TODO Auto-generated method stub
+
+		final Composite composite = new Composite(parent, GridData.FILL);
+		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		composite.setLayout(new GridLayout(2, false));
 		
+		btnBack = new Button(composite, SWT.NONE);
+		btnBack.setText(Messages.getString("ADD"));
+		btnBack.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnBack.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/add.png"));
+		btnBack.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setCurrentPath(getPreviousPathFrom(getCurrentPath()));
+				List<String> items;
+				try {
+					items = Arrays.asList(getBackupServerDirectories(getCurrentPath()));
+					tableViewer.setInput(items);
+					tableViewer.refresh();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		btnUpdateBackupServerConf = new Button(composite, SWT.NONE);
+		btnUpdateBackupServerConf.setText(Messages.getString("BACKUP_SERVER_CONF_BUTTON"));
+		btnUpdateBackupServerConf.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnUpdateBackupServerConf.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/services.png"));
+		btnUpdateBackupServerConf.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				BackupServerConfDialog dialog = new BackupServerConfDialog(Display.getDefault().getActiveShell());
+				dialog.create();
+				dialog.open();
+				selectedConfig = dialog.getSelectedConfig();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+	}
+
+	protected String getPreviousPathFrom(String path) {
+		try {
+			File temp = new File(path);
+			return temp.getParentFile().getName();
+		} catch (Exception e) {
+		}
+		return "/";
 	}
 
 	@Override
 	public void validateBeforeExecution() throws ValidationException {
+		if (selectedConfig == null) {
+			throw new ValidationException(Messages.getString("BACKUP_SERVER_CONF_NOT_FOUND"));
+		}
+		if (currentPath == null && currentPath.isEmpty()) {
+			throw new ValidationException(Messages.getString("CURRENT_PATH_NOT_FOUND"));
+		}
 	}
 
 	@Override
@@ -221,4 +333,12 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 		}
 	}
 
+	public String getCurrentPath() {
+		return currentPath;
+	}
+
+	public void setCurrentPath(String currentPath) {
+		this.currentPath = currentPath;
+	}
+	
 }
