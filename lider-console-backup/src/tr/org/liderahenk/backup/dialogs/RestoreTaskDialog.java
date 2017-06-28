@@ -45,9 +45,9 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
-public class RestoreFromServerDialog extends DefaultTaskDialog {
+public class RestoreTaskDialog extends DefaultTaskDialog {
 	
-	private static final Logger logger = LoggerFactory.getLogger(RestoreFromServerDialog.class);
+	private static final Logger logger = LoggerFactory.getLogger(RestoreTaskDialog.class);
 	
 	private Button btnBack;
 	private Button btnUpdateBackupServerConf;
@@ -58,7 +58,7 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 	private BackupServerConf selectedConfig = null;
 	private String currentPath = "/"; // Initially, root path
 	
-	public RestoreFromServerDialog(Shell parentShell, Set<String> dnSet) {
+	public RestoreTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet);
 	}
 
@@ -206,10 +206,10 @@ public class RestoreFromServerDialog extends DefaultTaskDialog {
 		composite.setLayout(new GridLayout(2, false));
 		
 		btnBack = new Button(composite, SWT.NONE);
-		btnBack.setText(Messages.getString("ADD"));
+		btnBack.setText(Messages.getString("BACK"));
 		btnBack.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 		btnBack.setImage(
-				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/add.png"));
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/arrow-left.png"));
 		btnBack.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

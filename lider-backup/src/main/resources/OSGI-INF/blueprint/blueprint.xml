@@ -33,6 +33,12 @@
 		<property name="resultFactory" ref="resultFactory" />
 	</bean>
 
+	<service ref="restoreCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
+	<bean id="restoreCommand" class="tr.org.liderahenk.backup.commands.RestoreCommand">
+		<property name="pluginInfo" ref="pluginInfoImpl" />
+		<property name="resultFactory" ref="resultFactory" />
+	</bean>
+
 	<service ref="getBackupServerConfigCommand" interface="tr.org.liderahenk.lider.core.api.plugin.ICommand" />
 	<bean id="getBackupServerConfigCommand" class="tr.org.liderahenk.backup.commands.GetBackupServerConfigCommand">
 		<property name="pluginInfo" ref="pluginInfoImpl" />
