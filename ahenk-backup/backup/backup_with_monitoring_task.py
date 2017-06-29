@@ -18,6 +18,7 @@ def handle_task(task, context):
         task['destPath'] = task['destPath'].replace('{IP_ADDRESS}', str(System.Hardware.ip_addresses()[0]))
 
     task['destPath'] = task['destPath']+'/'+task['sourcePath']
+    task['type']='b'
 
     backup = BackupRsync(task, context)
     backup.backup()
