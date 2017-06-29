@@ -26,7 +26,7 @@ public class ListBackupServerDirCommand implements ICommand {
 	private PluginInfoImpl pluginInfo;
 	private IPluginDbService dbService;
 
-	private static final String FIND_CHILD_DIRECTORIES = "find {0} -maxdepth 1 -type d";
+	private static final String FIND_CHILD_DIRECTORIES = "find {0} -maxdepth 1 -type d -print0 | tr '\\0' ','";
 
 	@Override
 	public ICommandResult execute(ICommandContext context) throws Exception {
@@ -42,7 +42,7 @@ public class ListBackupServerDirCommand implements ICommand {
 			String result = ssh.execCommand(FIND_CHILD_DIRECTORIES,
 					new Object[] { parameterMap.get("TARGET_PATH").toString() });
 			if (result != null) {
-				parameterMap.put("CHILD_DIRS", result);
+				resultMap.put("CHILD_DIRS", result);
 			}
 			ssh.disconnect();
 		}
