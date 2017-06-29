@@ -119,19 +119,29 @@ class BackupRsync(AbstractPlugin):
         self.parser = BackupParser(self.logger, context)
 
     def prepare_command(self):
-        destination_path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data[
-            'destPath']
-        path = self.backup_data['sourcePath'] + ' ' + destination_path
-        options = ' -a --no-i-r --info=progress2 --stats --no-h '
+
+        if self.backup_data['type'] == 'b':
+            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
+
+        else:
+            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['sourcePath'] + ' ' + self.backup_data['destPath']
+
+        options = ' -a --no-i-r --info=progress2 --stats --no-h -M--fake-super '
+
         backup_command = 'rsync ' + options + ' ' + path
         self.logger.info(str(backup_command))
+
         return backup_command
 
     def dry_run(self):
-        destination_path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data[
-            'destPath']
 
-        path = self.backup_data['sourcePath'] + ' ' + destination_path
+        if self.backup_data['type']=='b':
+
+            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
+
+        else:
+            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['sourcePath'] + ' ' + self.backup_data['destPath']
+
         options = ' -azn --stats --no-h '
         dry_run_backup_command = 'rsync ' + options + ' ' + path
         return dry_run_backup_command
@@ -174,10 +184,14 @@ class BackupRsync(AbstractPlugin):
         return 'sshpass -p ' + self.backup_data['password'] + ' ' + cmd + ' | stdbuf -oL tr "\\r" "\\n"'
 
     def destination_confirm(self):
-        self.execute_command(
-            'sshpass -p {0} ssh {1}@{2} mkdir -p {3}'.format(self.backup_data['password'], self.backup_data['username'],
-                                                             self.backup_data['destHost'],
-                                                             os.path.dirname(self.backup_data['destPath'])))
+        if self.backup_data['type'] == 'b':
+            self.execute_command(
+                'sshpass -p {0} ssh -o StrictHostKeyChecking=no {1}@{2} mkdir -p {3}'.format(self.backup_data['password'],
+                                                                                             self.backup_data['username'],
+                                                                 self.backup_data['destHost'],
+                                                                 os.path.dirname(self.backup_data['destPath'])))
+        else:
+            pass
 
     def backup(self):
         # Change status of parser and run dry run command for backup informations
