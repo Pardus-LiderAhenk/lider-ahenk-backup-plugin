@@ -8,6 +8,7 @@ public class BackupConstants {
 	public static final String DEFAULT_PORT = "22";
 	public static final int DEFAULT_PORT_INT = 22;
 	public static final String DEFAULT_DEST_PATH = "/ydk/{IP_ADDRESS}";
+	public static final String IP_ADDRESS_EXPRESSION = "{IP_ADDRESS}";
 
 	public static final class PARAMETERS {
 		public static final String USERNAME = "username";

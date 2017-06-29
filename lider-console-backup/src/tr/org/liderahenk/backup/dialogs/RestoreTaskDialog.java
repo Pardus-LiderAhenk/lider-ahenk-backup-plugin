@@ -1,6 +1,5 @@
 package tr.org.liderahenk.backup.dialogs;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,7 +59,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	private Text txtSearch;
 
 	private BackupServerConf selectedConfig = null;
-	private String currentPath = "/"; // Initially, root path
+	private String currentPath = "/";
 
 	public RestoreTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet);
@@ -83,6 +82,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 
 		try {
 			selectedConfig = getBackupServerConfig();
+			currentPath = getInitialPath(selectedConfig.getDestPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -92,6 +92,14 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		createTableButtonArea(parent);
 		createTableFilterArea(parent);
 		createTableArea(parent);
+	}
+
+	private String getInitialPath(String path) {
+		int index = path.lastIndexOf(BackupConstants.IP_ADDRESS_EXPRESSION);
+		if (index > -1) {
+			path = path.substring(0, index);
+		}
+		return path.replaceAll("//", "/");
 	}
 
 	private void createTableArea(Composite parent) {
@@ -116,7 +124,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		if (selectedConfig != null) {
 			List<String> items;
 			try {
-				items = Arrays.asList(getBackupServerDirectories("/"));
+				items = Arrays.asList(getBackupServerDirectories(currentPath));
 				tableViewer.setInput(items);
 				tableViewer.refresh();
 			} catch (Exception e) {
@@ -133,29 +141,16 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		gridData.horizontalAlignment = GridData.FILL;
 		tableViewer.getControl().setLayoutData(gridData);
 
-		// Hook up listeners
-		// tableViewer.addSelectionChangedListener(new
-		// ISelectionChangedListener() {
-		// @Override
-		// public void selectionChanged(SelectionChangedEvent event) {
-		// IStructuredSelection selection = (IStructuredSelection)
-		// tableViewer.getSelection();
-		// Object firstElement = selection.getFirstElement();
-		// if (firstElement instanceof String) {
-		// setCurrentPath((String) firstElement);
-		// }
-		// }
-		// });
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
 				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
 				Object firstElement = selection.getFirstElement();
 				if (firstElement instanceof String) {
-					setCurrentPath((String) firstElement);
+					currentPath = (String) firstElement;
 					List<String> items;
 					try {
-						items = Arrays.asList(getBackupServerDirectories(getCurrentPath()));
+						items = Arrays.asList(getBackupServerDirectories(currentPath));
 						tableViewer.setInput(items);
 						tableViewer.refresh();
 					} catch (Exception e) {
@@ -220,10 +215,10 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 		btnBack.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				setCurrentPath(getPreviousPathFrom(getCurrentPath()));
+				currentPath = getPreviousPathFrom(currentPath);
 				List<String> items;
 				try {
-					items = Arrays.asList(getBackupServerDirectories(getCurrentPath()));
+					items = Arrays.asList(getBackupServerDirectories(currentPath));
 					tableViewer.setInput(items);
 					tableViewer.refresh();
 				} catch (Exception e1) {
@@ -257,12 +252,15 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	}
 
 	protected String getPreviousPathFrom(String path) {
-		try {
-			File temp = new File(path);
-			return temp.getParentFile().getName();
-		} catch (Exception e) {
+		path = path.lastIndexOf("/") > 0 ? path.substring(0, path.lastIndexOf("/")) : "/";
+		String initialPath = getInitialPath(selectedConfig.getDestPath());
+		// Previous path must be a child of the initial path!
+		// Users should only select a related path defined by the backup server configuration.
+		if (path.startsWith(initialPath)) {
+			return path;
 		}
-		return "/";
+		Notifier.warning(null, Messages.getString("BACKUP_PATH_WARNING"), Messages.getString("BACKUP_PATH_WARNING_DESC"));
+		return initialPath;
 	}
 
 	@Override
@@ -277,8 +275,25 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 
 	@Override
 	public Map<String, Object> getParameterMap() {
-		// TODO Auto-generated method stub
-		return null;
+		Map<String, Object> profileData = new HashMap<String, Object>();
+		profileData.put(BackupConstants.PARAMETERS.USERNAME, selectedConfig.getUsername());
+		profileData.put(BackupConstants.PARAMETERS.PASSWORD, selectedConfig.getPassword());
+		profileData.put(BackupConstants.PARAMETERS.DEST_HOST, selectedConfig.getDestHost());
+		profileData.put(BackupConstants.PARAMETERS.DEST_PORT, selectedConfig.getDestPort());
+		profileData.put(BackupConstants.PARAMETERS.SOURCE_PATH, currentPath.endsWith("/") ? currentPath : currentPath + "/");
+		profileData.put(BackupConstants.PARAMETERS.DEST_PATH, getDestPathFrom(currentPath));
+		return profileData;
+	}
+
+	private String getDestPathFrom(String path) {
+		String tmp = path.endsWith("/") ? path : path + "/";
+		String base = selectedConfig.getDestPath();
+		base = base.endsWith("/") ? base : base + "/";
+		int count = base.length() - base.replace("/", "").length();
+		int pos = tmp.indexOf("/");
+	    while (--count > 0 && pos != -1)
+	        pos = tmp.indexOf("/", pos + 1);
+	    return tmp.substring(pos);
 	}
 
 	@Override
@@ -344,14 +359,6 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 			String item = (String) element;
 			return item.matches(searchString);
 		}
-	}
-
-	public String getCurrentPath() {
-		return currentPath;
-	}
-
-	public void setCurrentPath(String currentPath) {
-		this.currentPath = currentPath;
 	}
 
 }
