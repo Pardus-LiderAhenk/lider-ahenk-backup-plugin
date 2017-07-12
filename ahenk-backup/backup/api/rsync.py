@@ -121,10 +121,12 @@ class BackupRsync(AbstractPlugin):
     def prepare_command(self):
 
         if self.backup_data['type'] == 'b':
-            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
+            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data[
+                'destHost'] + ':' + self.backup_data['destPath']
 
         else:
-            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['sourcePath'] + ' ' + self.backup_data['destPath']
+            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data[
+                'sourcePath'] + ' ' + self.backup_data['destPath']
 
         options = ' -a --no-i-r --info=progress2 --stats --no-h -M--fake-super '
 
@@ -135,12 +137,14 @@ class BackupRsync(AbstractPlugin):
 
     def dry_run(self):
 
-        if self.backup_data['type']=='b':
+        if self.backup_data['type'] == 'b':
 
-            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['destPath']
+            path = self.backup_data['sourcePath'] + ' ' + self.backup_data['username'] + "@" + self.backup_data[
+                'destHost'] + ':' + self.backup_data['destPath']
 
         else:
-            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data['sourcePath'] + ' ' + self.backup_data['destPath']
+            path = self.backup_data['username'] + "@" + self.backup_data['destHost'] + ':' + self.backup_data[
+                'sourcePath'] + ' ' + self.backup_data['destPath']
 
         options = ' -azn --stats --no-h '
         dry_run_backup_command = 'rsync ' + options + ' ' + path
@@ -186,10 +190,11 @@ class BackupRsync(AbstractPlugin):
     def destination_confirm(self):
         if self.backup_data['type'] == 'b':
             self.execute_command(
-                'sshpass -p {0} ssh -o StrictHostKeyChecking=no {1}@{2} mkdir -p {3}'.format(self.backup_data['password'],
-                                                                                             self.backup_data['username'],
-                                                                 self.backup_data['destHost'],
-                                                                 os.path.dirname(self.backup_data['destPath'])))
+                'sshpass -p {0} ssh -o StrictHostKeyChecking=no {1}@{2} mkdir -p {3}'.format(
+                    self.backup_data['password'],
+                    self.backup_data['username'],
+                    self.backup_data['destHost'],
+                    os.path.dirname(self.backup_data['destPath'])))
         else:
             pass
 
@@ -208,7 +213,19 @@ class BackupRsync(AbstractPlugin):
 
         self.logger.info('Backup completed')
 
-        self.context.create_response(code=MessageCode.TASK_PROCESSED.value,
+        result = dict()
+        if self.context.is_mail_send():
+            mail_content = self.context.get_mail_content()
+            if mail_content.__contains__('{path}'):
+                mail_content = str(mail_content).replace('{path}', str(self.backup_data['sourcePath']))
+            if mail_content.__contains__('{ahenk}'):
+                mail_content = str(mail_content).replace('{ahenk}', str(self.Ahenk.dn()))
+            self.context.set_mail_content(mail_content)
+            result['mail_content'] = str(self.context.get_mail_content())
+            result['mail_subject'] = str(self.context.get_mail_subject())
+            result['mail_send'] = self.context.is_mail_send()
+
+        self.context.create_response(code=MessageCode.TASK_PROCESSED.value, data=json.dumps(result),
                                      message='Dosya transferi bitti.',
                                      content_type=self.get_content_type().APPLICATION_JSON.value)
 
