@@ -83,6 +83,8 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	private Label lblSuccessfulAgentCount;
 	private Label lblUnavailableAgentCount;
 	private Label lblMaxEstimation;
+	private Label lblTotalFileSize;
+	private Label lblNumberOfFiles;
 
 	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	Integer SUCCESSFUL_PERCENTAGE = new Integer(100);
@@ -101,7 +103,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		timer.schedule(new CheckResults(command.getTask().getId()), 0, 500);
 		monitoringOnly = true;
 	}
-	
+
 	@Override
 	public String createTitle() {
 		return Messages.getString("BACKUP_WITH_MONITORING");
@@ -117,7 +119,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	}
 
 	private void createBackupInputArea(final Composite parent) {
-		
+
 		try {
 			selectedConfig = getBackupServerConfig();
 		} catch (JsonParseException e) {
@@ -139,10 +141,10 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		Label labelSrcDir = new Label(inputComposite, SWT.NONE);
 		labelSrcDir.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		labelSrcDir.setText(Messages.getString("SOURCE_DIR"));
-		
+
 		txtSourcePath = new Text(inputComposite, SWT.BORDER);
 		txtSourcePath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
+
 		btnUpdateBackupServerConf = new Button(inputComposite, SWT.NONE);
 		btnUpdateBackupServerConf.setText(Messages.getString("BACKUP_SERVER_CONF_BUTTON"));
 		btnUpdateBackupServerConf.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
@@ -174,24 +176,32 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 
 	private void createTableInfoArea(Composite parent) {
 		lblAgentCount = new Label(parent, SWT.NONE);
-		lblAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblAgentCount.setText(Messages.getString("AGENT_COUNT", getDnSet().size()));
 
 		lblOngoingAgentCount = new Label(parent, SWT.NONE);
-		lblOngoingAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblOngoingAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblOngoingAgentCount.setText(Messages.getString("ONGOING_AGENT_COUNT", "0"));
 
 		lblSuccessfulAgentCount = new Label(parent, SWT.NONE);
-		lblSuccessfulAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblSuccessfulAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblSuccessfulAgentCount.setText(Messages.getString("SUCCESSFUL_AGENT_COUNT", "0"));
 
 		lblUnavailableAgentCount = new Label(parent, SWT.NONE);
-		lblUnavailableAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblUnavailableAgentCount.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblUnavailableAgentCount.setText(Messages.getString("UNAVAILABLE_AGENT_COUNT", getDnSet().size()));
 
 		lblMaxEstimation = new Label(parent, SWT.NONE);
-		lblMaxEstimation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblMaxEstimation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", "-"));
+		
+		lblTotalFileSize = new Label(parent, SWT.NONE);
+		lblTotalFileSize.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		lblTotalFileSize.setText(Messages.getString("GLOBAL_TOTAL_FILE_SIZE", "-"));
+		
+		lblNumberOfFiles = new Label(parent, SWT.NONE);
+		lblNumberOfFiles.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		lblNumberOfFiles.setText(Messages.getString("GLOBAL_NUMBER_OF_FILES", "-"));
 	}
 
 	private void createTableFilterArea(Composite parent) {
@@ -274,13 +284,13 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	private List<MonitoringTableItem> createDefaultTableItems() {
 		List<MonitoringTableItem> items = new ArrayList<MonitoringTableItem>();
 		for (String dn : getDnSet()) {
-			items.add(new MonitoringTableItem(dn, "0", Messages.getString("NO_RESULT")));
+			items.add(new MonitoringTableItem(dn, "0", Messages.getString("NO_RESULT"), "-", "-", "-", "-", "-", "-"));
 		}
 		return items;
 	}
 
 	private void createTableColumns() {
-		TableViewerColumn agentColumn = createTableViewerColumn(Messages.getString("AGENT"), 300);
+		TableViewerColumn agentColumn = createTableViewerColumn(Messages.getString("AGENT"), 240);
 		agentColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -290,11 +300,36 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 				return Messages.getString("UNTITLED");
 			}
 		});
+		
 
 		TableViewerColumn progressBarColumn = createTableViewerColumn(Messages.getString("PROGRESS_BAR"), 200);
 		progressBarColumn.setLabelProvider(new ProgressLabelProvider(tableViewer));
 
-		TableViewerColumn estimationColumn = createTableViewerColumn(Messages.getString("ESTIMATION"), 100);
+		TableViewerColumn transferSizeColumn = createTableViewerColumn(Messages.getString("TRANSFER_SIZE"), 280);
+		transferSizeColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof MonitoringTableItem) {
+					return ((MonitoringTableItem) element).getTransferredFileSize() + " / "
+							+ ((MonitoringTableItem) element).getEstimatedTransferSize();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		TableViewerColumn numberOfFilesColumn = createTableViewerColumn(Messages.getString("NUMBER_OF_FILES"), 220);
+		numberOfFilesColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof MonitoringTableItem) {
+					return ((MonitoringTableItem) element).getNumberOfTransferredFiles() + " / "
+							+ ((MonitoringTableItem) element).getNumberOfFiles();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		TableViewerColumn estimationColumn = createTableViewerColumn(Messages.getString("ESTIMATION"), 160);
 		estimationColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -350,7 +385,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	public String getPluginVersion() {
 		return BackupConstants.PLUGIN_VERSION;
 	}
-	
+
 	private EventHandler eventHandler = new EventHandler() {
 		@Override
 		public void handleEvent(final Event event) {
@@ -359,8 +394,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 				protected IStatus run(IProgressMonitor monitor) {
 					monitor.beginTask("BACKUP_LIST", 100);
 					try {
-						final TaskNotification task = (TaskNotification) event
-								.getProperty("org.eclipse.e4.data");
+						final TaskNotification task = (TaskNotification) event.getProperty("org.eclipse.e4.data");
 						Display.getDefault().asyncExec(new Runnable() {
 							@Override
 							public void run() {
@@ -388,9 +422,9 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	};
 
 	protected class CheckResults extends TimerTask {
-		
+
 		Long taskId = null;
-		
+
 		public CheckResults(Long taskId) {
 			this.taskId = taskId;
 		}
@@ -402,27 +436,57 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 				if (command != null && command.getCommandExecutions() != null) {
 					final List<MonitoringTableItem> items = new ArrayList<MonitoringTableItem>();
 					int successful = 0, ongoing = 0;
-					String maxEstimation = null;
+					String maxEstimation = null, totalFileSize = "-", numberOfFiles = "-";
 					// Iterate over each agent
 					for (CommandExecution exec : command.getCommandExecutions()) {
 						List<CommandExecutionResult> results = exec.getCommandExecutionResults();
 						String estimation = Messages.getString("NO_RESULT");
 						String percentage = "0";
+						String numberOfCreatedFiles = "-", transferredFileSize = "-", estimatedTransferSize = "-",
+								numberOfTransferredFiles = "-";
 						if (results != null && !results.isEmpty()) {
 							// Find latest result
 							results.sort(new ResultComparator(new ObjectMapper()));
 							CommandExecutionResult result = results.get(0);
-							
+
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED) {
 								percentage = "100";
 								estimation = "00:00:00";
+								
+								// TASK_PROCESSED message may contain response data which consists of numberOfFiles AND totalFileSize
+								byte[] data = result.getResponseData();
+								Map<String, Object> responseData = null;
+								try {
+									responseData = new ObjectMapper().readValue(data, 0, data.length,
+											new TypeReference<HashMap<String, Object>>() {
+											});
+								} catch (JsonParseException e) {
+									e.printStackTrace();
+								} catch (JsonMappingException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								if (responseData != null) {
+									numberOfCreatedFiles = responseData
+											.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
+									transferredFileSize = responseData.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE)
+											.toString();
+									estimatedTransferSize = responseData
+											.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
+									totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE).toString();
+									numberOfTransferredFiles = responseData
+											.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
+									numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
+								}
+								
 							} else { // TASK_PROCESSING
 								// Read estimation & percentage
 								byte[] data = result.getResponseData();
 								Map<String, Object> responseData = null;
 								try {
-									responseData = new ObjectMapper().readValue(data, 0,
-											data.length, new TypeReference<HashMap<String, Object>>() {
+									responseData = new ObjectMapper().readValue(data, 0, data.length,
+											new TypeReference<HashMap<String, Object>>() {
 											});
 								} catch (JsonParseException e) {
 									e.printStackTrace();
@@ -432,32 +496,49 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 									e.printStackTrace();
 								}
 								percentage = responseData.get(BackupConstants.PARAMETERS.PERCENTAGE).toString();
-								estimation = responseData.get(BackupConstants.PARAMETERS.ESTIMATION).toString();	
+								estimation = responseData.get(BackupConstants.PARAMETERS.ESTIMATION).toString();
+								numberOfCreatedFiles = responseData
+										.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
+								transferredFileSize = responseData.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE)
+										.toString();
+								estimatedTransferSize = responseData
+										.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
+								totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE).toString();
+								numberOfTransferredFiles = responseData
+										.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
+								numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
 							}
-							
-							if (result.getResponseCode() == StatusCode.TASK_PROCESSED || SUCCESSFUL_PERCENTAGE.toString().equals(percentage)) {
+
+							if (result.getResponseCode() == StatusCode.TASK_PROCESSED
+									|| SUCCESSFUL_PERCENTAGE.toString().equals(percentage)) {
 								successful++;
-							}
-							else if (result.getResponseCode() == StatusCode.TASK_PROCESSING) {
+							} else if (result.getResponseCode() == StatusCode.TASK_PROCESSING) {
 								ongoing++;
 							}
-							
+
 							// Update max estimation if necessary
-							maxEstimation = (maxEstimation != null && sdf.parse(maxEstimation).getTime() > sdf.parse(estimation).getTime()) ? maxEstimation : estimation;
+							maxEstimation = (maxEstimation != null
+									&& sdf.parse(maxEstimation).getTime() > sdf.parse(estimation).getTime())
+											? maxEstimation : estimation;
 						}
 
 						// Create table item
-						MonitoringTableItem item = new MonitoringTableItem(exec.getDn(), percentage, estimation);
+						MonitoringTableItem item = new MonitoringTableItem(exec.getDn(), percentage, estimation,
+								numberOfFiles, totalFileSize, estimatedTransferSize, numberOfTransferredFiles,
+								numberOfCreatedFiles, transferredFileSize);
 						items.add(item);
 					}
 					final int fSuccessful = successful;
 					final int fOngoing = ongoing;
 					final String fMaxEstimation = maxEstimation == null ? "-" : maxEstimation;
+					final String fNumberOfFiles = numberOfFiles == null ? "-" : numberOfFiles;
+					final String fTotalFileSize = totalFileSize == null ? "-" : totalFileSize;
 
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							if (lblAgentCount.isDisposed()) return;
+							if (lblAgentCount.isDisposed())
+								return;
 							// Update table
 							tableViewer.setInput(items);
 							tableViewer.refresh();
@@ -465,8 +546,17 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							int unavailable = getDnSet().size() - (fSuccessful + fOngoing);
 							lblOngoingAgentCount.setText(Messages.getString("ONGOING_AGENT_COUNT", fOngoing));
 							lblSuccessfulAgentCount.setText(Messages.getString("SUCCESSFUL_AGENT_COUNT", fSuccessful));
-							lblUnavailableAgentCount.setText(Messages.getString("UNAVAILABLE_AGENT_COUNT", unavailable));
-							lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", fMaxEstimation));							
+							lblUnavailableAgentCount
+									.setText(Messages.getString("UNAVAILABLE_AGENT_COUNT", unavailable));
+							lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", fMaxEstimation));
+							// Request redraw!
+							lblMaxEstimation.requestLayout();
+							lblNumberOfFiles.setText(Messages.getString("GLOBAL_NUMBER_OF_FILES", fNumberOfFiles));
+							// Request redraw!
+							lblNumberOfFiles.requestLayout();
+							lblTotalFileSize.setText(Messages.getString("GLOBAL_TOTAL_FILE_SIZE", fTotalFileSize));
+							// Request redraw!
+							lblTotalFileSize.requestLayout();
 						}
 					});
 				}
@@ -488,13 +578,14 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 			timer.purge();
 		}
 	}
-	
+
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		if (monitoringOnly) return;
+		if (monitoringOnly)
+			return;
 		super.createButtonsForButtonBar(parent);
 	}
-	
+
 	private BackupServerConf getBackupServerConfig() throws JsonParseException, JsonMappingException, IOException {
 		IResponse response = null;
 		try {
@@ -505,7 +596,10 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 		return (BackupServerConf) ((response != null && response.getResultMap() != null
-				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null) ? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(), BackupServerConf.class) : null);
+				&& response.getResultMap().get("BACKUP_SERVER_CONFIG") != null)
+						? new ObjectMapper().readValue(response.getResultMap().get("BACKUP_SERVER_CONFIG").toString(),
+								BackupServerConf.class)
+						: null);
 	}
 
 }

@@ -9,14 +9,28 @@ public class MonitoringTableItem implements Serializable {
 	private String dn;
 	private String percentage;
 	private String estimation;
+	private String numberOfFiles;
+	private String totalFileSize;
+	private String estimatedTransferSize;
+	private String numberOfTransferredFiles;
+	private String numberOfCreatedFiles;
+	private String transferredFileSize;
+
 	private boolean ongoing;
 	private boolean successful;
 
-	public MonitoringTableItem(String dn, String percentage, String estimation) {
-		super();
+	public MonitoringTableItem(String dn, String percentage, String estimation, String numberOfFiles,
+			String totalFileSize, String estimatedTransferSize, String numberOfTransferredFiles,
+			String numberOfCreatedFiles, String transferredFileSize) {
 		this.dn = dn;
 		this.percentage = percentage;
 		this.estimation = estimation;
+		this.numberOfFiles = numberOfFiles;
+		this.totalFileSize = totalFileSize;
+		this.estimatedTransferSize = estimatedTransferSize;
+		this.numberOfTransferredFiles = numberOfTransferredFiles;
+		this.numberOfCreatedFiles = numberOfCreatedFiles;
+		this.transferredFileSize = transferredFileSize;
 		// These are used to control table info labels
 		this.ongoing = false;
 		this.successful = false;
@@ -60,6 +74,54 @@ public class MonitoringTableItem implements Serializable {
 
 	public synchronized void setSuccessful(boolean successful) {
 		this.successful = successful;
+	}
+
+	public String getNumberOfFiles() {
+		return numberOfFiles;
+	}
+
+	public void setNumberOfFiles(String numberOfFiles) {
+		this.numberOfFiles = numberOfFiles;
+	}
+
+	public String getTotalFileSize() {
+		return totalFileSize;
+	}
+
+	public void setTotalFileSize(String totalFileSize) {
+		this.totalFileSize = totalFileSize;
+	}
+
+	public String getEstimatedTransferSize() {
+		return estimatedTransferSize;
+	}
+
+	public void setEstimatedTransferSize(String estimatedTransferSize) {
+		this.estimatedTransferSize = estimatedTransferSize;
+	}
+
+	public String getNumberOfTransferredFiles() {
+		return numberOfTransferredFiles;
+	}
+
+	public void setNumberOfTransferredFiles(String numberOfTransferredFiles) {
+		this.numberOfTransferredFiles = numberOfTransferredFiles;
+	}
+
+	public String getNumberOfCreatedFiles() {
+		return numberOfCreatedFiles;
+	}
+
+	public void setNumberOfCreatedFiles(String numberOfCreatedFiles) {
+		this.numberOfCreatedFiles = numberOfCreatedFiles;
+	}
+
+	public String getTransferredFileSize() {
+		return transferredFileSize;
+	}
+
+	public void setTransferredFileSize(String transferredFileSize) {
+		this.transferredFileSize = transferredFileSize;
 	}
 
 }

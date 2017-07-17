@@ -22,6 +22,12 @@ public class BackupConstants {
 		public static final String BACKUP_LIST_ITEMS = "directories";
 		public static final String ESTIMATION = "estimation";
 		public static final String PERCENTAGE = "percentage";
+		public static final String NUMBER_OF_CREATED_FILES = "numberOfCreatedFiles";
+		public static final String TRANSFERRED_FILE_SIZE = "transferredFileSize";
+		public static final String ESTIMATED_TRANSFER_SIZE = "estimatedTransferSize";
+		public static final String TOTAL_FILE_SIZE = "totalFileSize";
+		public static final String NUMBER_OF_TRANSFERRED_FILES = "numberOfTransferredFiles";
+		public static final String NUMBER_OF_FILES = "numberOfFiles";
 	}
 
 	public static final class EDITORS {
