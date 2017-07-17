@@ -30,23 +30,30 @@ class BackupParser(AbstractPlugin):
         self.percentage = None
         self.number_of_files = None
         self.number_of_transferred_files = None
+        self.number_of_created_files = None
         self.resuming = True
         self.estimated_time = 0
         self.total_file_size = None
         self.total_transferred_file_size = None
+        self.estimated_transfer_size = None
         self.transferred_file_size = 0
         self.logger = logger
 
     def parse_dry(self, line):
         if 'Number of files' in line:
-            total_file = re.findall('Number of files: (\d+)', line)
+            total_file = re.findall(r'\d+', line)
             if total_file:
-                self.number_of_files = str(total_file[0])
+                self.number_of_files = str(total_file[1])
+                self.update_last_status()
+        elif 'Number of created files' in line:
+            total_file = re.findall('Number of created files: (\d+)', line)
+            if total_file:
+                self.number_of_created_files = str(total_file[0])
                 self.update_last_status()
         elif 'Number of regular files transferred' in line:
-            transfferd_file_size = re.findall('Number of regular files transferred: (\d+)', line)
-            if transfferd_file_size:
-                self.number_of_transferred_files = str(transfferd_file_size[0])
+            transferred_file_size = re.findall('Number of regular files transferred: (\d+)', line)
+            if transferred_file_size:
+                self.number_of_transferred_files = str(transferred_file_size[0])
                 self.update_last_status()
         elif 'Total file size' in line:
             file_size = re.findall('Total file size: (\d+)', line)
@@ -57,6 +64,7 @@ class BackupParser(AbstractPlugin):
             transferred_file_size = re.findall('Total transferred file size: (\d+)', line)
             if transferred_file_size:
                 self.total_transferred_file_size = str(transferred_file_size[0])
+                self.estimated_transfer_size = self.total_transferred_file_size
                 self.update_last_status()
 
     def parse_sync(self, line):
@@ -90,7 +98,13 @@ class BackupParser(AbstractPlugin):
     def send_processing_message(self, percentage, time):
         try:
             data = {
-                'percentage': str(percentage), 'estimation': str(time)
+                'percentage': str(percentage), 'estimation': str(time),
+                'numberOfCreatedFiles': str(self.number_of_created_files),
+                'numberOfFiles': str(self.number_of_files),
+                'totalFileSize': str(self.total_file_size),
+                'transferredFileSize': str(self.transferred_file_size),
+                'estimatedTransferSize': str(self.estimated_transfer_size),
+                'numberOfTransferredFiles': str(self.number_of_transferred_files)
             }
 
             response = Response(type=MessageType.TASK_STATUS.value, id=self.context.get('taskId'),
@@ -151,6 +165,7 @@ class BackupRsync(AbstractPlugin):
         return dry_run_backup_command
 
     def execute_command(self, cmd):
+        # executing result a göre task fail ver
         self.logger.debug('Backup command is executing. Command : {0}'.format(cmd))
         try:
             self.parser.resuming = True
@@ -164,9 +179,10 @@ class BackupRsync(AbstractPlugin):
                     self.logger.info('#processed')
                 if output:
                     if self.parser.parse_sync(output) == -1:
-                        break
+                        pass
         except Exception as e:
             self.logger.error('A problem occurred while executing rsync command. Error Message: {0}'.format(str(e)))
+            return False
 
     def execute_dry_run(self, cmd):
 
@@ -189,25 +205,28 @@ class BackupRsync(AbstractPlugin):
 
     def destination_confirm(self):
         if self.backup_data['type'] == 'b':
-            self.execute_command(
+            return self.execute(
                 'sshpass -p {0} ssh -o StrictHostKeyChecking=no {1}@{2} mkdir -p {3}'.format(
                     self.backup_data['password'],
                     self.backup_data['username'],
                     self.backup_data['destHost'],
-                    os.path.dirname(self.backup_data['destPath'])))
+                    os.path.dirname(self.backup_data['destPath'])))[0]
         else:
             pass
 
     def backup(self):
         # Change status of parser and run dry run command for backup informations
         # self.parser.dry_run_status = True
+        if self.destination_confirm() != 0:
+            self.context.create_response(code=MessageCode.TASK_ERROR.value,
+                                         message='Uzak dizin oluşturulamadı.',
+                                         content_type=self.get_content_type().APPLICATION_JSON.value)
+            return
 
-        self.destination_confirm()
         dry_run_cmd = self.append_command_execution_type(self.dry_run())
         self.logger.debug('Dry run command:{0}'.format(dry_run_cmd))
         self.execute_dry_run(dry_run_cmd)
         self.parser.dry_run_status = False
-        #
         self.logger.info('Dry run executed.')
         self.prepare_backup()
 
