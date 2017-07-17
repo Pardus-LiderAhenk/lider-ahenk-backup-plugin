@@ -41,9 +41,9 @@ class BackupParser(AbstractPlugin):
 
     def parse_dry(self, line):
         if 'Number of files' in line:
-            total_file = re.findall('Number of files: (\d+)', line)
+            total_file = re.findall(r'\d+', line)
             if total_file:
-                self.number_of_files = str(total_file[0])
+                self.number_of_files = str(total_file[1])
                 self.update_last_status()
         elif 'Number of created files' in line:
             total_file = re.findall('Number of created files: (\d+)', line)
