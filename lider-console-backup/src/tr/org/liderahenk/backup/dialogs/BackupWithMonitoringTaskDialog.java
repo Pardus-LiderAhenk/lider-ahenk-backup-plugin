@@ -550,13 +550,13 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 									.setText(Messages.getString("UNAVAILABLE_AGENT_COUNT", unavailable));
 							lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", fMaxEstimation));
 							// Request redraw!
-							lblMaxEstimation.requestLayout();
+//							lblMaxEstimation.requestLayout();
 							lblNumberOfFiles.setText(Messages.getString("GLOBAL_NUMBER_OF_FILES", fNumberOfFiles));
 							// Request redraw!
-							lblNumberOfFiles.requestLayout();
+//							lblNumberOfFiles.requestLayout();
 							lblTotalFileSize.setText(Messages.getString("GLOBAL_TOTAL_FILE_SIZE", fTotalFileSize));
 							// Request redraw!
-							lblTotalFileSize.requestLayout();
+//							lblTotalFileSize.requestLayout();
 						}
 					});
 				}
