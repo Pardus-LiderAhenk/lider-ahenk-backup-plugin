@@ -244,6 +244,13 @@ class BackupRsync(AbstractPlugin):
             result['mail_subject'] = str(self.context.get_mail_subject())
             result['mail_send'] = self.context.is_mail_send()
 
+        result['numberOfCreatedFiles'] = str(self.parser.number_of_created_files)
+        result['numberOfFiles'] = str(self.parser.number_of_files)
+        result['totalFileSize'] = str(self.parser.total_file_size)
+        result['transferredFileSize'] = str(self.parser.transferred_file_size)
+        result['estimatedTransferSize'] = str(self.parser.estimated_transfer_size)
+        result['numberOfTransferredFiles'] = str(self.parser.number_of_transferred_files)
+
         self.context.create_response(code=MessageCode.TASK_PROCESSED.value, data=json.dumps(result),
                                      message='Dosya transferi bitti.',
                                      content_type=self.get_content_type().APPLICATION_JSON.value)
