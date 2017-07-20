@@ -15,7 +15,7 @@ echo "Project path: $PRJ_ROOT_PATH"
 # Build project
 echo "Building lider & lider-console modules..."
 cd "$PRJ_ROOT_PATH"
-mvn clean install -DskipTests
+mvn clean install -DskipTests -Dtycho.disableP2Mirrors=true
 echo "lider & lider-console modules built successfully."
 
 # Generate Ahenk package
