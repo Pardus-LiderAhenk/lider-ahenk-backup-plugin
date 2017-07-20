@@ -194,11 +194,11 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		lblMaxEstimation = new Label(parent, SWT.NONE);
 		lblMaxEstimation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", "-"));
-		
+
 		lblTotalFileSize = new Label(parent, SWT.NONE);
 		lblTotalFileSize.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblTotalFileSize.setText(Messages.getString("GLOBAL_TOTAL_FILE_SIZE", "-"));
-		
+
 		lblNumberOfFiles = new Label(parent, SWT.NONE);
 		lblNumberOfFiles.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		lblNumberOfFiles.setText(Messages.getString("GLOBAL_NUMBER_OF_FILES", "-"));
@@ -300,7 +300,6 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 				return Messages.getString("UNTITLED");
 			}
 		});
-		
 
 		TableViewerColumn progressBarColumn = createTableViewerColumn(Messages.getString("PROGRESS_BAR"), 200);
 		progressBarColumn.setLabelProvider(new ProgressLabelProvider(tableViewer));
@@ -328,7 +327,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 				return Messages.getString("UNTITLED");
 			}
 		});
-		
+
 		TableViewerColumn estimationColumn = createTableViewerColumn(Messages.getString("ESTIMATION"), 160);
 		estimationColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -452,8 +451,10 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED) {
 								percentage = "100";
 								estimation = "00:00:00";
-								
-								// TASK_PROCESSED message may contain response data which consists of numberOfFiles AND totalFileSize
+
+								// TASK_PROCESSED message may contain response
+								// data which consists of numberOfFiles AND
+								// totalFileSize
 								byte[] data = result.getResponseData();
 								Map<String, Object> responseData = null;
 								try {
@@ -470,16 +471,18 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								if (responseData != null) {
 									numberOfCreatedFiles = responseData
 											.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
-									transferredFileSize = responseData.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE)
-											.toString();
+									transferredFileSize = responseData
+											.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE).toString();
 									estimatedTransferSize = responseData
 											.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
-									totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE).toString();
+									totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE)
+											.toString();
 									numberOfTransferredFiles = responseData
 											.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
-									numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
+									numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES)
+											.toString();
 								}
-								
+
 							} else { // TASK_PROCESSING
 								// Read estimation & percentage
 								byte[] data = result.getResponseData();
@@ -550,13 +553,13 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 									.setText(Messages.getString("UNAVAILABLE_AGENT_COUNT", unavailable));
 							lblMaxEstimation.setText(Messages.getString("MAX_ESTIMATION", fMaxEstimation));
 							// Request redraw!
-//							lblMaxEstimation.requestLayout();
 							lblNumberOfFiles.setText(Messages.getString("GLOBAL_NUMBER_OF_FILES", fNumberOfFiles));
 							// Request redraw!
-//							lblNumberOfFiles.requestLayout();
 							lblTotalFileSize.setText(Messages.getString("GLOBAL_TOTAL_FILE_SIZE", fTotalFileSize));
 							// Request redraw!
-//							lblTotalFileSize.requestLayout();
+							lblTotalFileSize.getParent().layout(true);
+							// lblTotalFileSize.requestLayout(); tycho could not
+							// compile this!
 						}
 					});
 				}
