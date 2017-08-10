@@ -19,6 +19,8 @@ def handle_task(task, context):
 
     task['destPath'] = task['destPath']+'/'+task['sourcePath']
     task['type']='b'
+    
+    task['sourcePath'] = task['sourcePath'] + '/'
 
     backup = BackupRsync(task, context)
     backup.backup()
