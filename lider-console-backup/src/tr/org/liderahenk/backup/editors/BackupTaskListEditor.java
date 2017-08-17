@@ -186,6 +186,20 @@ public class BackupTaskListEditor extends EditorPart {
 				return Messages.getString("UNTITLED");
 			}
 		});
+		
+		TableViewerColumn backupType = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("BACKUP_TYPE"), 200);
+		backupType.getColumn().setAlignment(SWT.LEFT);
+		backupType.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof ExecutedTask) {
+					System.out.println(((ExecutedTask) element).getCommandClsId());
+					return Messages.getString(((ExecutedTask) element).getCommandClsId());
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
 
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
 				Messages.getString("LAST_EXECUTION_DATE"), 100);
