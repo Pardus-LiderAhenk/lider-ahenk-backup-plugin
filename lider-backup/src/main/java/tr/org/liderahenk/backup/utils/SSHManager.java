@@ -117,7 +117,7 @@ public class SSHManager {
 
 		logger.info("Command: {}", command);
 
-		String output = null;
+		StringBuilder output = new StringBuilder();
 
 		try {
 			channel = session.openChannel("exec");
@@ -149,8 +149,7 @@ public class SSHManager {
 					int i = inputStream.read(tmp, 0, 1024);
 					if (i < 0)
 						break;
-					output = new String(tmp, 0, i, StandardCharsets.UTF_8);
-					logger.info(output);
+					output.append(new String(tmp, 0, i, StandardCharsets.UTF_8));
 				}
 				if (channel.isClosed()) {
 					logger.info("exit status: " + channel.getExitStatus());
@@ -181,8 +180,9 @@ public class SSHManager {
 				}
 			}
 		}
+		logger.info(output.toString());
 
-		return output;
+		return output.toString();
 	}
 
 	/**
