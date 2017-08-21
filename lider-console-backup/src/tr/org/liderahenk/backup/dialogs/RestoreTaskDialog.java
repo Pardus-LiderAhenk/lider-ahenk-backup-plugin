@@ -62,7 +62,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	private String currentPath = "/";
 
 	public RestoreTaskDialog(Shell parentShell, Set<String> dnSet) {
-		super(parentShell, dnSet);
+		super(parentShell, dnSet, false, true);
 	}
 
 	@Override
@@ -359,6 +359,17 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 			String item = (String) element;
 			return item.matches(searchString);
 		}
+	}
+	
+	@Override
+	public String getMailContent() {
+		
+		return "cn={ahenk} ahenginde {path} yolu yedek geri alma işlemi tamamlanmıştır.";
+	}
+	
+	@Override
+	public String getMailSubject() {
+		return "Lider Ahenk Yedekleme ";
 	}
 
 }

@@ -93,7 +93,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	private BackupServerConf selectedConfig = null;
 
 	public BackupWithMonitoringTaskDialog(Shell parentShell, Set<String> dnSet) {
-		super(parentShell, dnSet);
+		super(parentShell, dnSet,false,true);
 		subscribeEventHandler(getPluginName().toUpperCase(Locale.ENGLISH) + "_TASK_NOTIFICATION", eventHandler);
 	}
 
@@ -604,5 +604,18 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								BackupServerConf.class)
 						: null);
 	}
+	
+	@Override
+	public String getMailContent() {
+		
+		return "cn={ahenk} ahenginde {path} yolu yedek alınmıştır.";
+	}
+	
+	@Override
+	public String getMailSubject() {
+		return "Lider Ahenk Yedekleme ";
+	}
+	
+	
 
 }
