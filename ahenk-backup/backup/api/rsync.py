@@ -239,6 +239,14 @@ class BackupRsync(AbstractPlugin):
                 mail_content = str(mail_content).replace('{path}', str(self.backup_data['sourcePath']))
             if mail_content.__contains__('{ahenk}'):
                 mail_content = str(mail_content).replace('{ahenk}', str(self.Ahenk.dn()))
+            if mail_content.__contains__('{totalFileSize}'):
+                mail_content = str(mail_content).replace('{totalFileSize}', str(self.parser.total_file_size))
+            if mail_content.__contains__('{transferredFileSize}'):
+                mail_content = str(mail_content).replace('{transferredFileSize}', str(self.parser.transferred_file_size))
+            if mail_content.__contains__('{numberOfFiles}'):
+                mail_content = str(mail_content).replace('{numberOfFiles}', str(self.parser.transferred_file_size))
+            if mail_content.__contains__('{numberOfTransferredFiles}'):
+                mail_content = str(mail_content).replace('{numberOfTransferredFiles}', str(self.parser.transferred_file_size))
             self.context.set_mail_content(mail_content)
             result['mail_content'] = str(self.context.get_mail_content())
             result['mail_subject'] = str(self.context.get_mail_subject())
