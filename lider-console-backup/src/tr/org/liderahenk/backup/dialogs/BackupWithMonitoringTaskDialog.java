@@ -608,7 +608,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	@Override
 	public String getMailContent() {
 		
-		return "cn={ahenk} ahenginde {path} yolu yedek alınmıştır.";
+		return "{ahenk} ahenginde {path} yolu yedek alınmıştır.Toplam boyut:{totalFileSize} , Transfer edilen boyut:{transferredFileSize} ";
 	}
 	
 	@Override
