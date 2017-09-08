@@ -82,6 +82,8 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 
 		try {
 			selectedConfig = getBackupServerConfig();
+			
+			if(selectedConfig!=null)
 			currentPath = getInitialPath(selectedConfig.getDestPath());
 		} catch (Exception e) {
 			e.printStackTrace();
