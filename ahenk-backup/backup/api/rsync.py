@@ -212,7 +212,7 @@ class BackupRsync(AbstractPlugin):
                     self.backup_data['destHost'],
                     os.path.dirname(self.backup_data['destPath'])))[0]
         else:
-            pass
+            return 0
 
     def backup(self):
         # Change status of parser and run dry run command for backup informations
