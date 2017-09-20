@@ -38,6 +38,7 @@ class BackupParser(AbstractPlugin):
         self.estimated_transfer_size = None
         self.transferred_file_size = 0
         self.logger = logger
+        self.last_sended_percentage = -1
 
     def parse_dry(self, line):
         if 'Number of files' in line:
@@ -68,7 +69,7 @@ class BackupParser(AbstractPlugin):
                 self.update_last_status()
 
     def parse_sync(self, line):
-        self.logger.debug('Rsync command results are parsing')
+        #self.logger.debug('Rsync command results are parsing')
 
         line_as_arr = None
         try:
@@ -89,8 +90,12 @@ class BackupParser(AbstractPlugin):
 
                 if real_percentage == 100:
                     self.estimated_time = '0:00:00'
+                if real_percentage % 10 == 0:
+                    if self.last_sended_percentage != real_percentage:
+                       self.last_sended_percentage = real_percentage
+                       self.logger.info('Gönderilen Dosya: %' + str(real_percentage))
+                       self.send_processing_message(str(real_percentage), str(self.estimated_time))
 
-                self.send_processing_message(str(real_percentage), str(self.estimated_time))
                 if real_percentage == 100:
                     return -1
         return 0
