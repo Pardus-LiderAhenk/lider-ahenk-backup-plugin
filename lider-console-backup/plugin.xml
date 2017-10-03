@@ -23,11 +23,14 @@
             id="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask"            
             name="%command.task">
       </command>
+      
+      <!-- 
       <command
             categoryId="tr.org.liderahenk.liderconsole.commands.category"
             id="tr.org.liderahenk.liderconsole.commands.RestoreTask"            
             name="%restore.task">
       </command>
+      -->
       <command
             categoryId="tr.org.liderahenk.liderconsole.commands.category"
             id="tr.org.liderahenk.liderconsole.commands.BackupTaskList"            
@@ -61,11 +64,13 @@
             commandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask">
       </handler>
       	
-      	<!-- Task handler -->
+      	<!-- Task handler 
        <handler
             class="tr.org.liderahenk.backup.handlers.RestoreTaskHandler"
             commandId="tr.org.liderahenk.liderconsole.commands.RestoreTask">
       </handler>
+      
+      -->
       	
       	<!-- Editor handler -->
        <handler
@@ -164,7 +169,7 @@
            		</command>
 		</menuContribution>
       
-      	<!-- Add extension point contribution for "task execution" dialogs -->
+      	<!-- Add extension point contribution for "task execution" dialogs
 		<menuContribution
       		allPopups="false"
             locationURI="popup:tr.org.liderahenk.liderconsole.menus.ApplyTask?after=additions">
@@ -197,6 +202,8 @@
         </visibleWhen>
            		</command>
 		</menuContribution>
+		
+		 -->
 		
 	      
       <menuContribution
@@ -236,13 +243,13 @@
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
   		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini ve izlenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
-  		<taskItem label="%restore.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.RestoreTask" selectionType="multi" description="Daha önceden yedeklenen dizinlerin geri yüklenmesi için tıklayınız..." imagePath="backup.png"/>
   	</extension>
   	
 	<!-- Add extension point contribution for i18n messages -->
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.i18n">
   		<task code="backup_task" label="%command.task" />
+  		<task code="backup_with_monitoring_task" label="%command.task" />
   		<plugin name="backup" label="%plugin.label" />
   	</extension>
   	

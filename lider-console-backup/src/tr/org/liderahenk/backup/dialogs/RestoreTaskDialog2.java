@@ -48,9 +48,9 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
-public class RestoreTaskDialog extends DefaultTaskDialog {
+public class RestoreTaskDialog2 extends DefaultTaskDialog {
 
-	private static final Logger logger = LoggerFactory.getLogger(RestoreTaskDialog.class);
+	private static final Logger logger = LoggerFactory.getLogger(RestoreTaskDialog2.class);
 
 	private Button btnBack;
 	private Button btnUpdateBackupServerConf;
@@ -61,7 +61,7 @@ public class RestoreTaskDialog extends DefaultTaskDialog {
 	private BackupServerConf selectedConfig = null;
 	private String currentPath = "/";
 
-	public RestoreTaskDialog(Shell parentShell, Set<String> dnSet) {
+	public RestoreTaskDialog2(Shell parentShell, Set<String> dnSet) {
 		super(parentShell, dnSet, false, true);
 	}
 

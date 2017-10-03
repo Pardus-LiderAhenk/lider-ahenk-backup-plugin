@@ -401,7 +401,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								// Dispose previous timer if exists
 								onClose();
 								timer = new Timer();
-								timer.schedule(new CheckResults(taskId), 0, 500);
+								timer.schedule(new CheckResults(taskId), 0, 3000);
 							}
 						});
 					} catch (Exception e) {
@@ -437,6 +437,9 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 					int successful = 0, ongoing = 0;
 					String maxEstimation = null, totalFileSize = "-", numberOfFiles = "-";
 					// Iterate over each agent
+					
+					int completedCount=0;
+					
 					for (CommandExecution exec : command.getCommandExecutions()) {
 						List<CommandExecutionResult> results = exec.getCommandExecutionResults();
 						String estimation = Messages.getString("NO_RESULT");
@@ -482,7 +485,9 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 									numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES)
 											.toString();
 								}
-
+								
+								completedCount ++;
+								
 							} else { // TASK_PROCESSING
 								// Read estimation & percentage
 								byte[] data = result.getResponseData();
@@ -560,8 +565,16 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							lblTotalFileSize.getParent().layout(true);
 							// lblTotalFileSize.requestLayout(); tycho could not
 							// compile this!
+							
+							
 						}
 					});
+					
+					
+					if(completedCount==command.getCommandExecutions().size()){
+						timer.cancel();
+					}
+					
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
@@ -569,10 +582,10 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 		}
 	};
 
-	@Override
-	protected Point getInitialSize() {
-		return new Point(800, 800);
-	}
+//	@Override
+//	protected Point getInitialSize() {
+//		return new Point(800, 800);
+//	}
 
 	@Override
 	protected void onClose() {
@@ -615,7 +628,6 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	public String getMailSubject() {
 		return "Lider Ahenk Yedekleme ";
 	}
-	
 	
 
 }

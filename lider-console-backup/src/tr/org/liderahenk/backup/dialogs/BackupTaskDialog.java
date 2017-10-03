@@ -3,6 +3,7 @@ package tr.org.liderahenk.backup.dialogs;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -64,6 +65,11 @@ public class BackupTaskDialog extends DefaultTaskDialog {
 	@Override
 	public String getPluginVersion() {
 		return BackupConstants.PLUGIN_VERSION;
+	}
+	
+	@Override
+	protected Point getInitialSize() {
+		return new Point(600, 700);
 	}
 	
 }
