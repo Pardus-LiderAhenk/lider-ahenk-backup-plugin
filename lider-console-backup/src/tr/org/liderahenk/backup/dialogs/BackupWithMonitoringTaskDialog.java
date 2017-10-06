@@ -491,7 +491,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 							} else { // TASK_PROCESSING
 								// Read estimation & percentage
 								byte[] data = result.getResponseData();
-								Map<String, Object> responseData = null;
+							if(data != null) {									 Map<String, Object> responseData = null;
 								try {
 									responseData = new ObjectMapper().readValue(data, 0, data.length,
 											new TypeReference<HashMap<String, Object>>() {
@@ -515,6 +515,9 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								numberOfTransferredFiles = responseData
 										.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
 								numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
+							
+							}
+							
 							}
 
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED
