@@ -31,7 +31,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -100,7 +99,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 	public BackupWithMonitoringTaskDialog(Shell parentShell, Command command) {
 		super(parentShell, new HashSet<String>(command.getDnList()), true);
 		timer = new Timer();
-		timer.schedule(new CheckResults(command.getTask().getId()), 0, 500);
+		timer.schedule(new CheckResults(command.getTask().getId()), 0, 4000);
 		monitoringOnly = true;
 	}
 
@@ -401,7 +400,7 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								// Dispose previous timer if exists
 								onClose();
 								timer = new Timer();
-								timer.schedule(new CheckResults(taskId), 0, 3000);
+								timer.schedule(new CheckResults(taskId), 0, 4000);
 							}
 						});
 					} catch (Exception e) {
@@ -460,64 +459,72 @@ public class BackupWithMonitoringTaskDialog extends DefaultTaskDialog {
 								// totalFileSize
 								byte[] data = result.getResponseData();
 								Map<String, Object> responseData = null;
-								try {
-									responseData = new ObjectMapper().readValue(data, 0, data.length,
-											new TypeReference<HashMap<String, Object>>() {
-											});
-								} catch (JsonParseException e) {
-									e.printStackTrace();
-								} catch (JsonMappingException e) {
-									e.printStackTrace();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								if (responseData != null) {
-									numberOfCreatedFiles = responseData
-											.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
-									transferredFileSize = responseData
-											.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE).toString();
-									estimatedTransferSize = responseData
-											.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
-									totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE)
-											.toString();
-									numberOfTransferredFiles = responseData
-											.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
-									numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES)
-											.toString();
-								}
 								
-								completedCount ++;
+								if(data!=null) 
+								{
+									try {
+										responseData = new ObjectMapper().readValue(data, 0, data.length,
+												new TypeReference<HashMap<String, Object>>() {
+												});
+									} catch (JsonParseException e) {
+										e.printStackTrace();
+									} catch (JsonMappingException e) {
+										e.printStackTrace();
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+									if (responseData != null) {
+										numberOfCreatedFiles = responseData
+												.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
+										transferredFileSize = responseData
+												.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE).toString();
+										estimatedTransferSize = responseData
+												.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
+										totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE)
+												.toString();
+										numberOfTransferredFiles = responseData
+												.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
+										numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES)
+												.toString();
+									}
+									
+									completedCount ++;
+								}
 								
 							} else { // TASK_PROCESSING
 								// Read estimation & percentage
 								byte[] data = result.getResponseData();
-							if(data != null) {									 Map<String, Object> responseData = null;
-								try {
-									responseData = new ObjectMapper().readValue(data, 0, data.length,
-											new TypeReference<HashMap<String, Object>>() {
-											});
-								} catch (JsonParseException e) {
-									e.printStackTrace();
-								} catch (JsonMappingException e) {
-									e.printStackTrace();
-								} catch (IOException e) {
-									e.printStackTrace();
+								
+								if(data !=null)
+									{
+										Map<String, Object> responseData = null;
+										try {
+											responseData = new ObjectMapper().readValue(data, 0, data.length,
+													new TypeReference<HashMap<String, Object>>() {
+													});
+										} catch (JsonParseException e) {
+											e.printStackTrace();
+										} catch (JsonMappingException e) {
+											e.printStackTrace();
+										} catch (IOException e) {
+											e.printStackTrace();
+										}
+										
+										if(responseData!=null){
+											percentage = responseData.get(BackupConstants.PARAMETERS.PERCENTAGE).toString();
+											estimation = responseData.get(BackupConstants.PARAMETERS.ESTIMATION).toString();
+											numberOfCreatedFiles = responseData
+													.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
+											transferredFileSize = responseData.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE)
+													.toString();
+											estimatedTransferSize = responseData
+													.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
+											totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE).toString();
+											numberOfTransferredFiles = responseData
+													.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
+											numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
+										}
 								}
-								percentage = responseData.get(BackupConstants.PARAMETERS.PERCENTAGE).toString();
-								estimation = responseData.get(BackupConstants.PARAMETERS.ESTIMATION).toString();
-								numberOfCreatedFiles = responseData
-										.get(BackupConstants.PARAMETERS.NUMBER_OF_CREATED_FILES).toString();
-								transferredFileSize = responseData.get(BackupConstants.PARAMETERS.TRANSFERRED_FILE_SIZE)
-										.toString();
-								estimatedTransferSize = responseData
-										.get(BackupConstants.PARAMETERS.ESTIMATED_TRANSFER_SIZE).toString();
-								totalFileSize = responseData.get(BackupConstants.PARAMETERS.TOTAL_FILE_SIZE).toString();
-								numberOfTransferredFiles = responseData
-										.get(BackupConstants.PARAMETERS.NUMBER_OF_TRANSFERRED_FILES).toString();
-								numberOfFiles = responseData.get(BackupConstants.PARAMETERS.NUMBER_OF_FILES).toString();
-							
-							}
-							
 							}
 
 							if (result.getResponseCode() == StatusCode.TASK_PROCESSED
