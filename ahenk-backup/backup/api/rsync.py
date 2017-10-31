@@ -7,7 +7,8 @@ import re
 import subprocess
 import sys
 import threading
-
+import random
+import time
 from base.model.enum.content_type import ContentType
 from base.model.enum.message_code import MessageCode
 from base.model.enum.message_type import MessageType
@@ -39,6 +40,7 @@ class BackupParser(AbstractPlugin):
         self.transferred_file_size = 0
         self.logger = logger
         self.last_sended_percentage = -1
+        self.last_senden_file_size = -1
 
     def parse_dry(self, line):
         if 'Number of files' in line:
@@ -83,7 +85,8 @@ class BackupParser(AbstractPlugin):
 
             if float(self.total_transferred_file_size) == 0:
                 return -1
-            else:
+            elif self.total_file_size != 0:
+                
                 transfer_range = float(
                     '{0:.2f}'.format(float(self.total_transferred_file_size) / float(self.total_file_size)))
                 real_percentage = int(int(self.percentage) / transfer_range)
@@ -98,6 +101,8 @@ class BackupParser(AbstractPlugin):
 
                 if real_percentage == 100:
                     return -1
+            elif self.total_file_size ==0:
+                return -1
         return 0
 
     def send_processing_message(self, percentage, time):
@@ -176,18 +181,49 @@ class BackupRsync(AbstractPlugin):
             self.parser.resuming = True
             command_process = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                                stderr=subprocess.PIPE)
+            self.logger.debug("BACKUP COMMAND -------")
+            err_line = command_process.stderr.readline()
+            if err_line and b'closed' in err_line:
+               time.sleep(random.randrange(0,10,2))
+               self.execute_command(cmd) 
+            self.logger.debug('Err Line')
+            self.logger.debug(err_line)
+            self.logger.debug('Err Line End')
+            #self.logger.debug(command_process.stdout.readline())
+            #self.logger.debug(command_process)
             self.parser.set_process = command_process
             while self.parser.resuming:
                 output = command_process.stdout.readline()
+                self.logger.debug(output) 
                 if output == '' or command_process.poll() is not None:
-                    self.parser.resuming = False
-                    self.logger.info('#processed')
+                    try:
+                          if int(str(self.parser.estimated_transfer_size))-2000 < int(str(self.parser.transferred_file_size)) < int(str(self.parser.estimated_transfer_size))+2000 :
+                             self.parser.resuming = False
+                             self.logger.info('#processed')
+                          else:
+                             #if int(str(self.parser.last_senden_file_size)) != int(str(self.parser.transferred_file_size)):
+                             #   self.parser.last_senden_file_size = self.parser.transferred_file_size
+                             #   self.parser.transferred_file_size = 0
+                             #   self.parser.estimated_transfer_size = str(int(str(self.parser.estimated_transfer_size)) - int(str(self.parser.transferred_file_size)))
+                             
+                             #self.parser.estimated_transfer_size = str(int(str(self.parser.estimated_transfer_size)) - int(str(self.parser.transferred_file_size)))
+                             #self.parser.transferred_file_size = 0
+                             #self.logger.debug(self.parser.estimated_transfer_size)
+                             #self.logger.debug(self.parser.transferred_file_size)
+                             #self.logger.debug('EXECUTE COMMAND TEKRAR CALISIYOR')
+                             #self.execute_command(cmd)
+                             self.backup()
+                    except:
+                          self.parser.resuming = False
+                          self.logger.debug('RSYNC ERROR - YEDEKLEME ISLEMI TEKRARLANIYOR')
+                          self.backup()
                 if output:
                     if self.parser.parse_sync(output) == -1:
                         pass
         except Exception as e:
             self.logger.error('A problem occurred while executing rsync command. Error Message: {0}'.format(str(e)))
-            return False
+            #return False
+            self.backup()
 
     def execute_dry_run(self, cmd):
 
@@ -222,15 +258,32 @@ class BackupRsync(AbstractPlugin):
     def backup(self):
         # Change status of parser and run dry run command for backup informations
         # self.parser.dry_run_status = True
-        if self.destination_confirm() != 0:
+        retry_count = 10;
+        is_destination_ok = False
+        for count in range(retry_count):
+            if self.destination_confirm() != 0:
+                continue
+            else:
+                is_destination_ok = True
+                break
+
+        if not is_destination_ok:
             self.context.create_response(code=MessageCode.TASK_ERROR.value,
-                                         message='Uzak dizin oluşturulamadı.',
-                                         content_type=self.get_content_type().APPLICATION_JSON.value)
-            return
+                                             message='Uzak dizin oluşturulamadı.',
+                                             content_type=self.get_content_type().APPLICATION_JSON.value)
 
         dry_run_cmd = self.append_command_execution_type(self.dry_run())
         self.logger.debug('Dry run command:{0}'.format(dry_run_cmd))
-        self.execute_dry_run(dry_run_cmd)
+        test_dry_run = True
+        test_dry_run_count = 1
+        while test_dry_run:
+            self.execute_dry_run(dry_run_cmd)
+            if self.parser.number_of_files == None or self.parser.number_of_created_files == None or self.parser.number_of_transferred_files == None or self.parser.total_file_size == None:
+                time.sleep(test_dry_run_count * random.randrange(0, 10, 2))
+                test_dry_run_count = test_dry_run_count + 1
+                continue
+            else:
+                test_dry_run = False
         self.parser.dry_run_status = False
         self.logger.info('Dry run executed.')
         self.prepare_backup()
