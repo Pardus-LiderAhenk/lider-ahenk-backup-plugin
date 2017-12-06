@@ -33,7 +33,7 @@ Backup plugin for [Lider Ahenk project](http://www.liderahenk.org.tr).
 
 #### Ahenk
 
-1. Create a soft link for _ahenk-backup/backup_ directory via `sudo ln -s lider-ahenk-backup-plugin/ahenk-backup/backup/ /opt/ahenk/plugins`
+1. Create a soft link for _ahenk-backup/backup_ directory via `sudo ln -s lider-ahenk-backup-plugin/ahenk-backup/backup/ /usr/share/ahenk/plugins`
 
 ## Contribution
 
