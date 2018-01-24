@@ -228,21 +228,21 @@
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.policymenu">
   		<policyItem label="%command.profile" pluginName="backup" 
-  		pluginVersion="1.0.0" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile"
+  		pluginVersion="1.1" profileCommandId="tr.org.liderahenk.liderconsole.commands.BackupProfile"
   		 />
   	</extension>
   		<!-- Add extension point contribution for "task execution" dialogs -->
 <!--  	
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
-  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
+  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.1" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
   	</extension>
 -->
   		<!-- Add extension point contribution for "task execution" dialogs -->
   	
 	<extension
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
-  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini ve izlenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
+  		<taskItem label="%command.task" pluginName="backup" pluginVersion="1.1" taskCommandId="tr.org.liderahenk.liderconsole.commands.BackupWithMonitoringTask" selectionType="multi" description="Dizinlerin anlık olarak yedeklenmesini ve izlenmesini sağlayan eklentidir.&#xA;Yedek almak için tıklayınız.." imagePath="backup.png"/>
   	</extension>
   	
 	<!-- Add extension point contribution for i18n messages -->
